@@ -1,0 +1,82 @@
+# Read this first!
+# https://doc.rust-lang.org/cargo/reference/config.html
+
+[package]
+name = "carrot-utils"
+version = "0.1.0"
+edition = "2021"
+
+[build]
+rustflags=["-C prefer-dynamic"]
+
+[profile.release]
+strip = true
+debug = false
+
+[[bin]]
+name = "ad"
+path = "src/ad.rs"
+
+[[bin]]
+name = "af"
+path = "src/af.rs"
+
+[[bin]]
+name = "c"
+path = "src/c.rs"
+
+[[bin]]
+name = "hello"
+path = "src/hello.rs"
+
+[[bin]]
+name = "hl"
+path = "src/hl.rs"
+
+[[bin]]
+name = "info"
+path = "src/info.rs"
+
+[[bin]]
+name = "junk"
+path = "src/junk.rs"
+
+[[bin]]
+name = "l"
+path = "src/l.rs"
+
+[[bin]]
+name = "lf"
+path = "src/lf.rs"
+
+[[bin]]
+name = "m"
+path = "src/m.rs"
+
+[[bin]]
+name = "own"
+path = "src/own.rs"
+
+[[bin]]
+name = "p"
+path = "src/p.rs"
+
+[[bin]]
+name = "perm"
+path = "src/perm.rs"
+
+[[bin]]
+name = "rd"
+path = "src/rd.rs"
+
+[[bin]]
+name = "rf"
+path = "src/rf.rs"
+
+[[bin]]
+name = "sl"
+path = "src/sl.rs"
+
+[dependencies]
+libc = "0.2.147"
+rand = "0.8.4"
