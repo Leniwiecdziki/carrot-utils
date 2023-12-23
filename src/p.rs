@@ -13,34 +13,29 @@ fn main() {
 
     let mut rev = false;
     let mut showcount = false;
-    let mut dbg = false;
     let mut index = 0;
     let mut start = false;
     let mut end = false;
-    let mut lines_to_show: usize = 0;
+    let mut start_from_line: usize = 0;
     while index < swcs.len() {
         let s = &swcs[index];
         let v = &vals[index];
 
-        if s != "r" && s != "rev" && s != "c" && s != "count" && s != "d" && s != "debug" && 
+        if s != "r" && s != "rev" && s != "c" && s != "count" && 
         s != "s" && s != "start" && s != "e" && s != "end" {
-            eprintln!("Unknown change: {s}");
+            eprintln!("Unknown switch: {s}");
             process::exit(1);
         }
         if s == "r" || s == "rev" {
             rev = true;
-            if !v.is_empty() { eprintln!("Unsupported value for a change: {s}={v}"); process::exit(1); }
+            if !v.is_empty() { eprintln!("Unsupported value for a switch: {s}={v}"); process::exit(1); }
         }
         if s == "c" || s == "count" {
             showcount = true;
-            if !v.is_empty() { eprintln!("Unsupported value for a change: {s}={v}"); process::exit(1); }
-        }
-        if s == "d" || s == "debug" {
-            dbg = true;
-            if !v.is_empty() { eprintln!("Unsupported value for a change: {s}={v}"); process::exit(1); }
+            if !v.is_empty() { eprintln!("Unsupported value for a switch: {s}={v}"); process::exit(1); }
         }
         if s == "s" || s == "start" {
-            if v.is_empty() { eprintln!("This change requires a value: {s}={v}"); process::exit(1); }
+            if v.is_empty() { eprintln!("This switch requires a value: {s}={v}"); process::exit(1); }
             match v.parse::<usize>() {
                 Err(e) =>
                 {
@@ -50,7 +45,7 @@ fn main() {
                 Ok(e) =>
                 {
                     start=true;
-                    lines_to_show=e;
+                    start_from_line=e;
                 }
             }
         }
@@ -65,13 +60,9 @@ fn main() {
                 Ok(e) =>
                 {
                     end=true;
-                    lines_to_show=e;
+                    start_from_line=e;
                 }
             }
-        }
-        if end & start {
-            eprintln!("Switches 'start' and 'end' are colliding.");
-            process::exit(1);
         }
         index += 1; 
     }
@@ -83,39 +74,68 @@ fn main() {
                 eprintln!("{}: Cannot preview the file because of an error: {:?}!", opts[index], e.kind());
                 index += 1;
                 },
-            Ok(e) => { 
-                let mut output = Vec::new();
-                let mut linecount = 1.try_into().unwrap();
-
-                for line in e.lines() {
-                    output.push(line)
+            Ok(f) => { 
+                // Create a vector that stores entire file in it
+                let mut contents = Vec::new();
+                for line in f.lines() {
+                    contents.push(line)
+                }
+                
+                // Count lines
+                let lines_in_file = contents.len();
+                
+                // Error handling for "start" and "end" switches
+                if end & start {
+                    eprintln!("Switches 'start' and 'end' are colliding.");
+                    process::exit(1);
+                };
+                if (start_from_line > lines_in_file || start_from_line < 1) && (start || end) {
+                    eprintln!("Line number out of range!");
+                    process::exit(1);
                 }
 
-                // Show lines from a file in normal/reverse order
-                // FIXME: Show Nth lines from end
-                if rev {
-                    for line in output.iter().rev() {
-                        if 
-                        start & (linecount <= lines_to_show) || 
-                        end & (linecount >= lines_to_show) || 
-                        !start & !end 
-                        {
-                            showit(showcount, dbg, linecount, line);
-                        }
-                        linecount += 1;
-                    }
+                // By default, this program will print out file contents from the first line
+                // But when "rev" is enabled, it should be printed from the end.
+
+                // FIXME: Mixing "start" or "end" with "rev" breaks the app
+                let start_counting_from = if !rev {
+                    1
                 }
                 else {
-                    for line in output {
-                        if 
-                        start & (linecount <= lines_to_show) || 
-                        end & (linecount >= lines_to_show) || 
-                        !start & !end 
-                        {
-                            showit(showcount, dbg, linecount, line);
-                        }
-                        linecount += 1;
+                    lines_in_file
+                };
+                // If user decides to not count lines from first - add "start" or "end" values
+                let mut counter = if !start && !end {
+                    start_counting_from
+                }
+                else if start && !end {
+                    start_counting_from+start_from_line-1
+                }
+                else if !start && end {
+                    let end_from_line = start_from_line-1;
+                    lines_in_file-end_from_line
+                }
+                else {
+                    1
+                };
+                
+                // Print line by line
+                while counter <= lines_in_file && counter != 0  {
+                    // Create a counter object that will be displayed beside text when "count" switch is used
+                    let counter_print = if showcount {
+                        format!("{counter}: ")
                     }
+                    else {
+                        String::new()
+                    };
+                    println!("{}{}", counter_print, contents[counter-1]);
+                    // Reverse line counting
+                    if !rev {
+                        counter += 1;
+                    }
+                    else {
+                        counter -= 1;
+                    };
                 }
 
                 index += 1; 
@@ -123,21 +143,4 @@ fn main() {
                 }
         }
     }
-}
-
-fn showit(showcount:bool, dbg:bool , linecount: usize, line:&str) {
-    // This string contains "linecount: " if showcount is enabled
-    let printline = if showcount {
-        format!("{linecount}: ")
-    }
-    else {
-        String::new()
-    };
-    if dbg {
-        println!("{printline}{:#?}", line);
-    }
-    else {
-        println!("{printline}{}", line);
-    }
-
 }

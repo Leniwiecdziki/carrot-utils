@@ -74,6 +74,10 @@ name = "rf"
 path = "src/rf.rs"
 
 [[bin]]
+name = "rush"
+path = "src/rush.rs"
+
+[[bin]]
 name = "sl"
 path = "src/sl.rs"
 

@@ -30,11 +30,11 @@ fn main() {
     while index < swcs.len() {
         let s = &swcs[index];
 
-        if s != "r" && s != "rec" {
+        if s != "r" && s != "rec" && s != "v" {
             eprintln!("Unknown switch: {s}");
             process::exit(1);
         }
-        if s == "r" || s == "rec" || s == "v" {
+        if s == "r" || s == "rec" {
             rec = true;
         }
 
@@ -63,7 +63,9 @@ fn main() {
             eprintln!("Incorrect permission mode!");
             process::exit(1);
         }
-        println!("Setting permission mode: {m_all}");
+        if verbose {
+            println!("Setting permission mode: {m_all}");
+        }
         
         if !PathBuf::from(&opts[index]).is_dir() || PathBuf::from(&opts[index]).is_dir() & !rec {
             changemode(&opts[index], &m_all, &verbose);
@@ -149,11 +151,11 @@ fn changemode(path:&str, mode: &str, verbose:&bool) {
         );
         if ret == 0 {
             if *verbose {
-                println!("Successfully changed permission mode: {}", path);
+                println!("{path}: Succeeded");
             }
         }
         else {
-            eprintln!("Failed to set permission mode: {}", path);
+            eprintln!("{path}: Failed");
         }
     }
 }

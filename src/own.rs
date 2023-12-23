@@ -117,7 +117,7 @@ fn main() {
                 process::exit(1);
             };
         if verbose {
-            println!("Setting ownership mode: {user} {group}",);
+            println!("Setting ownership mode: {user} {group}");
         }
         if !PathBuf::from(&opts[index]).is_dir() || PathBuf::from(&opts[index]).is_dir() & !rec {
             changeown(&opts[index], &user, &group, &verbose);

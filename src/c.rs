@@ -53,11 +53,12 @@ fn main() {
         /*
         There are multiple copying scenarios that we need to test:
         1. Both resources are the same? - Refuse to copy
-        2. Is user copying directory to a file? - Prevent it from happening
+        2. Is user copying directory to a file? - Aslo refuse to copy
 
-        3. Is user copying file to a directory? - Copy under that directory, not as directory itself
-        4. Is user copying directory to another directory (existing)? - Split them and overwrite/not overwrite
-        5. Is user copying directory to another directory (nonexisting)? - Create it and copy recursively
+        3. Is user copying file to a file that does not exist? - Create a new file and copy to it
+        4. Is user copying file to a directory? - Copy under that directory, not as directory itself
+        5. Is user copying directory to another directory (existing)? - Split them and overwrite/not overwrite
+        6. Is user copying directory to another directory (nonexisting)? - Create it and copy recursively
 
         And also, there is 'overwrite' switch.
         By default, overwriting is blocked but if user permits it - just do it!
@@ -96,7 +97,10 @@ fn main() {
 
         // Get fullpaths
         let s = fs::canonicalize(src).unwrap();
-        let d = fs::canonicalize(dest).unwrap();
+        let d = match fs::canonicalize(dest) {
+            Ok(e) => e,
+            Err(_) => PathBuf::from(dest),
+        };
 
         // Test 1.
         // If src and dest exist, check if they are the same
@@ -133,6 +137,22 @@ fn main() {
         }
 
         // Test 3.
+        // File to non-existing element
+        if !isdir && exists && !destexists && !destdir {
+            match fs::File::create(&d) {
+                Err(e) => eprintln!("{}: Destination file wasn't added because of an error: {:?}!", d.display(), e.kind()),
+                _ => {
+                    let prev_overwrite = ow;
+                    ow=true;
+                    copy(&s, &d, &ow, &verbose);
+                    ow=prev_overwrite;
+                    index += 1;
+                    continue;
+                },
+            }
+        }
+
+        // Test 4.
         // File to file
         if !isdir && exists && destexists && !destdir {
             copy(&s, &d, &ow, &verbose);
@@ -140,7 +160,7 @@ fn main() {
             continue;
         }
 
-        // Test 4.
+        // Test 5.
         // Directory to directory
         if exists && isdir && destexists && destdir {
             browsedir(&s, &d, &ow, &verbose);
@@ -148,10 +168,10 @@ fn main() {
             continue;
         }
 
-        // Test 5.
+        // Test 6.
         // File to directory
         let mod_dest =  if exists && !isdir && destexists && destdir {
-            PathBuf::from(format!("{}/{}", d.display(), s.file_name().unwrap().to_str().unwrap()))
+            d.join(s.file_name().unwrap())
         }
         else {
             d.clone()
@@ -160,53 +180,43 @@ fn main() {
 
     index += 1;
     }
-    
 }
 
 fn browsedir(src:&Path, dest:&Path, ow:&bool, verbose:&bool) {
-    // List where all found files will be stored
-    let mut srclist = libdir::browse(&PathBuf::from(src));
-    let mut destlist = Vec::new();
+    // Contents of a directory that needs to be copied
+    let srclist = libdir::browse(&PathBuf::from(src));
 
-    for r in srclist.clone() {
-        // let justname = r.file_name().unwrap().to_os_string().into_string().unwrap();
-        let cutpath = r.strip_prefix(dest).unwrap();
-        let newdir = format!("{}/{}", dest.display(), cutpath.display());
-        if r.is_dir() {
-            fs::create_dir_all(PathBuf::from(newdir)).unwrap();
+    for element in srclist {
+        /*
+            You need to cut the "src" prefix from every file name while copying directories
+            This will allow you to recreate a directory structure in destination
+         */
+        match element.strip_prefix(src) {
+            Err(e) => eprintln!("{}: Copying failed because of error: {}", &src.display(), e),
+            Ok(stripped_src) => {
+                let joined_dest = dest.join(stripped_src);
+                if element.is_dir() {
+                    if let Err(e) = fs::create_dir(&joined_dest) { 
+                        eprintln!("{}: Cannot create a directory on destination:{}", stripped_src.display(), e.kind()) 
+                    };
+                    browsedir(&element, &joined_dest, ow, verbose);
+                }
+                else {
+                    copy(&element, &joined_dest, ow, verbose);
+                }
+            },
         }
-        else {
-            srclist.push(PathBuf::from(format!("{}/{}", src.display(), cutpath.display())));
-            destlist.push(PathBuf::from(format!("{}/{}", dest.display(), cutpath.display())));
-        }
-    }
-    // Remove folder names from srclist because destlist doesn't has them either
-    // and they need to have the same contents
-    srclist.retain(|i| !i.is_dir());
-
-    // https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.zip
-    for iterator in srclist.iter().zip(destlist) {
-        let (s, d) = iterator;
-        if !s.is_dir() {
-            copy(s, &d, ow, verbose);
-        }
-    }
-
-    // Append contents of a subdirectory if needed
-    for r in libdir::browse(src) {
-        if r.is_dir() {
-            browsedir(r.as_path(), dest, ow, verbose);
-        }
-    }
+    };
 }
 
 fn copy(src:&Path, dest:&Path, ow:&bool, verbose:&bool) {
     if !ow && fs::symlink_metadata(PathBuf::from(&dest)).is_ok() {
-        eprintln!("{}: Overwriting has been disabled! Refusing to copy as {}.", &src.display(), &dest.display());
+        dbg!(&dest);
+        eprintln!("{}: Overwriting is disabled! Refusing to copy resource to existing destination!", &src.display());
     }
     else {
         match fs::copy(src, dest) {
-            Err(e) => eprintln!("{}: Cannot copy element because of an error: {}", &dest.display(), e.kind()),
+            Err(e) => eprintln!("{}: Cannot copy resource because of an error: {}", &dest.display(), e.kind()),
             Ok(_) => if *verbose {println!("{}: Copied successfully", &dest.display())},
         };
     };

@@ -66,27 +66,14 @@ fn showdir(dir:&Path, hidden: &bool, rec:&bool) {
     let result = libdir::browse(dir);
     let mut output = Vec::new();
     
-    // Add new elements to 'output'
     for r in &result {
-        /*
-        Example command: "l /home/user/fruits -r" or "l fruits -r" from directory /home/user
-        Example directory structure:
-            /home/user/fruits/apple
-            /home/user/fruits/banana
-            /home/user/fruits/pear
-            /home/user/fruits/sour/lemon
-            /home/user/fruits/sour/orange
-        original_request - /home/user/fruits
-        fullpath - A full path to found element (/home/user/fruits/banana or /home/user/fruits/sour/lemon)
-        justname - Just a name of found element (banana or lemon)
-        cutpath - Full path without 'original_request' (banana or sour/lemon)
-         */
         let justname = r.file_name().unwrap().to_os_string().into_string().unwrap();
         let cutpath = r.strip_prefix(dir).unwrap();
         if !justname.starts_with('.') || justname.starts_with('.') && *hidden {
             output.push(cutpath);
         }
     }
+    
     output.sort();
     for s in output {
         println!("{}", s.display());

@@ -37,7 +37,7 @@ fn main() {
         }
 
         match fs::File::create(&opts[index]) {
-            Err(e) => eprintln!("{}: Was not added because of an error: {:?}!", opts[index], e.kind()),
+            Err(e) => eprintln!("{}: File wasn't added because of an error: {:?}!", opts[index], e.kind()),
             _ => if verbose {println!("{}: Added successfully.", opts[index]);},
         }
         index += 1;
