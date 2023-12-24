@@ -2,8 +2,6 @@ Release 0.1.0:
     - 22.12.2023:
     C:    Fixed an issue, when user tried to copy a file to directory with a new name.
     P:    Program was rewritten
-    M:    Fixed an issue when program crashed while moving data across disks
-    M:    Files aren't moving when users tries to move them to "."
     PERM: Fixed issues with verbose mode still being enabled while it shouldn't
     RUSH: Added an extremely early shell for CarrotOS
     - 23.12.2023
@@ -13,6 +11,8 @@ Release 0.1.0:
 Release 0.1.1 [PLANNED]:
     [ ] *:    Use "for (index, something) in something_else.into_iter().enumerate()" instead of separate while loops and "index" variables
     [ ] JUNK: Add a tool to overwrite files with zeroes or random bytes
+    [ ] M:    Fix an issue when program crashed while moving data across disks
+    [ ] M:    Files aren't moving when user tries to move them to "."
 
 Release 0.2.0 [PLANNED]:
     [ ] RUSH: Run files (scripts) passed as arguments from CLI
@@ -21,3 +21,4 @@ Release 0.2.0 [PLANNED]:
     [ ]       Do more logical operations: Like "if"
     [ ]       Keyboard shortcuts would be nice
     [ ]       File mode
+

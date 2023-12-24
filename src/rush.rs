@@ -4,6 +4,20 @@ use std::process;
 use std::env;
 mod libargs;
 
+/*
+    TODO
+    There are three types of commands in RUSH
+    - Classic commands: When you try to run something like 'git' or 'htop', it will be executed by system with all it's arguments.
+    - Built-in commands: They also get their arguments as usual BUT they will be executed by shell
+    - SUPER COMMANDS: They are used to operate on output, exit code, or anything else from previous or next commands
+
+    Let's assume that we have a following script:
+    if my_app do echo it works! end
+    In this example, super command "if" has to find out if "my_app" succeeded. 
+    If so, every command from "do" to "end" will be executed
+ */ 
+const SUPER_COMMANDS:[&str; 2] = ["then", "if"];
+
 fn main() {
     let opts = libargs::opts();
     let (swcs, vals) = libargs::swcs();
@@ -34,6 +48,8 @@ fn main() {
         todo!("File mode is not ready yet!");
     }
     else if mode == "input" {
+        // Always set $? (return code of previous command) to zero on start-up
+        env::set_var("?", "0");
         loop {
             // All commands
             let commands = getinput();
@@ -41,10 +57,11 @@ fn main() {
             for (index, command) in commands.into_iter().enumerate() {
                 // Check whether the first argument is a keyword or not
                 match command[0].as_str() {
+                    "gt" => gt(&command),
                     "help" | "?" => help(),
                     "exit" | "quit" | "bye" => exit(&command),
-                    "gt" => gt(&command),
-                    "then" => runcommand(&command[1..]),
+                    "then" | "then2" | "then3" => runcommand(&command[1..]),
+                    "if" => todo!("IF"),
                     _ => runcommand(&command),
                 };
             }
@@ -53,14 +70,15 @@ fn main() {
 }
 
 fn getinput() -> Vec<Vec<String>> {
-    // FOR ALL COMMENTS BELLOW: Assume, that user typed this command into a shell: say hello then say goodbye
-    // This variable contains full line typed by the user (List 1.: 'say hello then say goodbye')
+    // FOR ALL COMMENTS BELLOW: Assume, that user typed this command into a shell: af file then ad dir
+    // This variable contains full line typed by the user (List 1.: 'af file then ad dir')
     let mut input = String::new();
 
     // This list contains all commands passed by the user 
     let mut commands: Vec<Vec<String>> = Vec::new();
 
-    // This list contains arguments passed by the user (List 1.: 'say', 'hello') (List 2.: 'echo', 'goodbye')
+    // This list contains arguments passed by the user and with all built-in commands separated 
+    // (List 1.: 'af', 'file') (List 2.: 'then') (List 3.: 'ad', 'dir')
     let mut words: Vec<String> = Vec::new();
     
     // Print a prompt
@@ -81,7 +99,7 @@ fn getinput() -> Vec<Vec<String>> {
                 Ok(_) => {
                     /*
                         Character division helps to find individual arguments (words)
-                        Expected output: ('say' 'hello' 'then' 'say' 'goodbye')
+                        Expected output: ('af' 'file' 'then' 'ad' 'dir')
                      */
                     let mut word = String::new();
                     for c in input.chars() {
@@ -93,40 +111,77 @@ fn getinput() -> Vec<Vec<String>> {
                             word.push(c);
                         };
                     };
+
                     /*
-                        Arguments division helps to find individual commands
-                        Expected output: ('say' 'hello'), ('then' 'say' 'goodbye')
-                     */
+                        This will be used to separate SUPER COMMANDS from anything else
+                        Expected output: ('af' 'file'), ('then'), ('ad' 'dir')
+                     */ 
                     let mut command = Vec::new();
-                    let words_lenght = words.len();
-                    for (index, w) in words.into_iter().enumerate() {
-                        // Append command to "commands" list if there are no more arguments available... 
-                        if index == words_lenght-1 {
-                            command.push(w);                      // Quickly append the last word to a command
-                            if index != 0 {
-                                // If there's not previous command, do not append anything!
-                                commands.push(command.clone());   // Send a command to "commands"
-                            }
-                            command.clear();                      // Clear a list to start looking over for new, inline commands
+                    let mut index = 0;
+                    // println!("DEBUG: I got these words: {:?}", words);
+                    while index < words.len() {
+                        // println!("DEBUG: Analising word: {}", words[index]);
+                        // If built-in keyword appears
+                        if SUPER_COMMANDS.contains(&words[index].as_str()) {
+                            // println!("DEBUG: Phrase '{}' is a keyword", words[index]);
+                            // println!("DEBUG: It's index is: {index}");
+                            // Separate keyword from PREVIOUSLY collected words
+                            // Expected output: ('af' 'file'), ('then' 'ad' 'dir')
+                            let (before_keyword, right) = words.split_at(index);
+                            // Convert everything to a vector
+                            let (before_keyword, right) = (before_keyword.to_vec(), right.to_vec());
+                            println!("DEBUG: Words before keyword: {:?}", before_keyword);
+
+                            // Separate keyword from NEXT words, that are not collected yet
+                            // Expected output: ('af' 'file'), ('then'), ('ad' 'dir')
+                            let (keyword, after_keyword) = {
+                                let (keyword, after_keyword) = right.split_at(1);
+                                (keyword.to_vec(), after_keyword.to_vec())
+                            };
+                            // println!("DEBUG: Keyword: {:?}", keyword);
+                            // println!("DEBUG: Words after keyword: {:?}", after_keyword);
+
+                            // Send previous words to "commands"
+                            // Example: ('af' 'file')
+                            commands.push(before_keyword.to_vec());
+                            // Send keyword to "commands" exclusively
+                            // Example: ('then')
+                            commands.push(keyword.to_vec());
+                            // We no longer need to deal with ('af' 'file') and ('then')
+                            words = after_keyword.to_vec();
+                            // Start over with new words
+                            // Example: ('ad' 'dir')
+                            index = 0;
                         }
-                        // ...or when there is a built-in keyword
-                        else if w == "then" {
-                            if index != 0 {
-                                // If there's not previous command, do not append anything!
-                                commands.push(command.clone());   // Send previous command to "commands"
-                            }
-                            command.clear();                      // Clear list to start over
-                            command.push(w);                      // Append a keyword to a fresh list
-                        }
+                        // If there is not built-in command 
                         else {
-                            command.push(w);
-                        };
-                    };
+                            command.push(words[index].clone());
+                            index += 1;
+                            if index == words.len() {
+                                // println!("DEBUG: It's so dark and alone here... No keywords!");
+                                // println!("DEBUG: I'm adding this command to 'commands' list: {:?}", words);
+                                commands.push(words.clone());
+                            }
+                        }
+                    } 
+                    // dbg!(&commands);
                     commands
                 },
             }
         }
     }
+}
+
+fn gt(args:&Vec<String>) { 
+    if args.len() == 1 {
+        eprintln!("Give me a directory path to go!");
+    }
+    else if args.len() > 2 {
+        eprintln!("Cannot go to multiple directories simultaneously!");
+    }
+    else if let Err(e) = env::set_current_dir(&args[1]) { 
+            eprintln!("{}: Cannot go into this directory because of an error: {}", args[1], e.kind());
+    };
 }
 
 fn help() {
@@ -145,22 +200,15 @@ fn exit(args:&Vec<String>) {
             Err(e) => eprintln!("Cannot exit with this code because of an error: {:?}", e.kind()),
             Ok(code) => process::exit(code),
         }
-    }
-}
-
-fn gt(args:&Vec<String>) { 
-    if args.len() == 1 {
-        eprintln!("Give me a directory path to go!");
-    }
-    else if args.len() > 2 {
-        eprintln!("Cannot go to multiple directories simultaneously!");
-    }
-    else if let Err(e) = env::set_current_dir(&args[1]) { 
-            eprintln!("{}: Cannot go into this directory because of an error: {}", args[1], e.kind());
     };
 }
 
 fn runcommand(args:&[String]) {
-    process::Command::new(&args[0]).args(&args[1..]).status().expect("Execution failed");
+    if args.is_empty() || args[0].is_empty() {
+        print!("");
+    }
+    else if let Err(e) = process::Command::new(&args[0]).args(&args[1..]).status() { 
+        eprintln!("{}: Command execution failed because of an error: {}", args[0], e.kind()) 
+    }
     io::stdout().flush().unwrap();
 }
