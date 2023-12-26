@@ -13,6 +13,11 @@ rustflags=["-C prefer-dynamic"]
 strip = true
 debug = false
 
+[dependencies]
+libc = "*"
+rand = "0.8.4"
+crossterm = "*"
+
 [[bin]]
 name = "ad"
 path = "src/ad.rs"
@@ -80,7 +85,3 @@ path = "src/rush.rs"
 [[bin]]
 name = "sl"
 path = "src/sl.rs"
-
-[dependencies]
-libc = "0.2.147"
-rand = "0.8.4"

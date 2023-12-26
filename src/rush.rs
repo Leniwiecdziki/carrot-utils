@@ -1,8 +1,13 @@
+use std::f32::consts::E;
 use std::io;
-use std::io::Write;
+use std::io::{Write, stdout, stdin};
 use std::process;
 use std::env;
 mod libargs;
+use crossterm::{self, event};
+use crossterm::event::{Event, KeyModifiers, KeyEvent, ModifierKeyCode};
+use crossterm::event::KeyCode;
+use crossterm::event::Event::Key;
 
 /*
     TODO
@@ -51,7 +56,7 @@ fn main() {
         // Always set $? (return code of previous command) to zero on start-up
         env::set_var("?", "0");
         loop {
-            // All commands
+            // Get commands
             let commands = getinput();
             // Commands separated by built-in keywords
             for (index, command) in commands.into_iter().enumerate() {
@@ -60,7 +65,7 @@ fn main() {
                     "gt" => gt(&command),
                     "help" | "?" => help(),
                     "exit" | "quit" | "bye" => exit(&command),
-                    "then" | "then2" | "then3" => runcommand(&command[1..]),
+                    "then" => runcommand(&command[1..]),
                     "if" => todo!("IF"),
                     _ => runcommand(&command),
                 };
@@ -70,6 +75,9 @@ fn main() {
 }
 
 fn getinput() -> Vec<Vec<String>> {
+    let stdin = stdin();
+    let mut stdout = stdout();
+
     // FOR ALL COMMENTS BELLOW: Assume, that user typed this command into a shell: af file then ad dir
     // This variable contains full line typed by the user (List 1.: 'af file then ad dir')
     let mut input = String::new();
@@ -83,92 +91,81 @@ fn getinput() -> Vec<Vec<String>> {
     
     // Print a prompt
     print!("> ");
+
     // Flush stdout to print the prompt
-    match io::stdout().flush() {
+    match stdout.flush() {
         Err(e) => {
             eprintln!("Shell crashed with the following error: {}", e.kind());
             process::exit(1);
         },
         // Read line into "input"
         Ok(_) => {
-            match io::stdin().read_line(&mut input) {
-                Err(e) => {
-                    eprintln!("Shell crashed with the following error: {}", e.kind());
-                    process::exit(1);
-                },
-                Ok(_) => {
-                    /*
-                        Character division helps to find individual arguments (words)
-                        Expected output: ('af' 'file' 'then' 'ad' 'dir')
-                     */
-                    let mut word = String::new();
-                    for c in input.chars() {
-                        if c.is_whitespace() {
-                            words.push(word.clone());
-                            word.clear();
-                        }
-                        else {
-                            word.push(c);
-                        };
+            // For every written character - show it and add to "input"
+            crossterm::terminal::enable_raw_mode().expect("Cannot go into raw terminal mode!");
+            loop {
+                let event = crossterm::event::read().unwrap();
+                match event {
+                    // When CTRL+Z is pressed - Quit
+                    Event::Key(KeyEvent{ code: event::KeyCode::Char('z'), modifiers: event::KeyModifiers::CONTROL, .. })  => process::exit(1),
+                    _ => { println!("{:?}", event); todo!("Any clue how to get just the char?")},       
+                };
+            };
+            crossterm::terminal::disable_raw_mode().expect("Cannot quit from raw terminal mode!");
+
+            /*
+                Character division helps to find individual arguments (words)
+                Expected output: ('af' 'file' 'then' 'ad' 'dir')
+            */
+            words = input.split_whitespace().map(str::to_string).collect();
+
+            /*
+                This will be used to separate SUPER COMMANDS from anything else
+                Expected output: ('af' 'file'), ('then'), ('ad' 'dir')
+            */ 
+            let mut command = Vec::new();
+            let mut index = 0;
+            while index < words.len() {
+                // If built-in keyword appears
+                if SUPER_COMMANDS.contains(&words[index].as_str()) {
+                    // Separate keyword from PREVIOUSLY collected words
+                    // Expected output: ('af' 'file'), ('then' 'ad' 'dir')
+                    let (before_keyword, right) = words.split_at(index);
+                    // Convert everything to a vector
+                    let (before_keyword, right) = (before_keyword.to_vec(), right.to_vec());
+                    println!("DEBUG: Words before keyword: {:?}", before_keyword);
+
+                    // Separate keyword from NEXT words, that are not collected yet
+                    // Expected output: ('af' 'file'), ('then'), ('ad' 'dir')
+                    let (keyword, after_keyword) = {
+                        let (keyword, after_keyword) = right.split_at(1);
+                        (keyword.to_vec(), after_keyword.to_vec())
                     };
 
-                    /*
-                        This will be used to separate SUPER COMMANDS from anything else
-                        Expected output: ('af' 'file'), ('then'), ('ad' 'dir')
-                     */ 
-                    let mut command = Vec::new();
-                    let mut index = 0;
-                    // println!("DEBUG: I got these words: {:?}", words);
-                    while index < words.len() {
-                        // println!("DEBUG: Analising word: {}", words[index]);
-                        // If built-in keyword appears
-                        if SUPER_COMMANDS.contains(&words[index].as_str()) {
-                            // println!("DEBUG: Phrase '{}' is a keyword", words[index]);
-                            // println!("DEBUG: It's index is: {index}");
-                            // Separate keyword from PREVIOUSLY collected words
-                            // Expected output: ('af' 'file'), ('then' 'ad' 'dir')
-                            let (before_keyword, right) = words.split_at(index);
-                            // Convert everything to a vector
-                            let (before_keyword, right) = (before_keyword.to_vec(), right.to_vec());
-                            println!("DEBUG: Words before keyword: {:?}", before_keyword);
-
-                            // Separate keyword from NEXT words, that are not collected yet
-                            // Expected output: ('af' 'file'), ('then'), ('ad' 'dir')
-                            let (keyword, after_keyword) = {
-                                let (keyword, after_keyword) = right.split_at(1);
-                                (keyword.to_vec(), after_keyword.to_vec())
-                            };
-                            // println!("DEBUG: Keyword: {:?}", keyword);
-                            // println!("DEBUG: Words after keyword: {:?}", after_keyword);
-
-                            // Send previous words to "commands"
-                            // Example: ('af' 'file')
-                            commands.push(before_keyword.to_vec());
-                            // Send keyword to "commands" exclusively
-                            // Example: ('then')
-                            commands.push(keyword.to_vec());
-                            // We no longer need to deal with ('af' 'file') and ('then')
-                            words = after_keyword.to_vec();
-                            // Start over with new words
-                            // Example: ('ad' 'dir')
-                            index = 0;
-                        }
-                        // If there is not built-in command 
-                        else {
-                            command.push(words[index].clone());
-                            index += 1;
-                            if index == words.len() {
-                                // println!("DEBUG: It's so dark and alone here... No keywords!");
-                                // println!("DEBUG: I'm adding this command to 'commands' list: {:?}", words);
-                                commands.push(words.clone());
-                            }
-                        }
-                    } 
-                    // dbg!(&commands);
-                    commands
-                },
-            }
-        }
+                    // Send previous words to "commands"
+                    // Example: ('af' 'file')
+                    commands.push(before_keyword.to_vec());
+                    // Send keyword to "commands" exclusively
+                    // Example: ('then')
+                    commands.push(keyword.to_vec());
+                    // We no longer need to deal with ('af' 'file') and ('then')
+                    words = after_keyword.to_vec();
+                    // Start over with new words
+                    // Example: ('ad' 'dir')
+                    index = 0;
+                }
+                // If there is not built-in command 
+                else {
+                    command.push(words[index].clone());
+                    index += 1;
+                    if index == words.len() {
+                        // println!("DEBUG: It's so dark and alone here... No keywords!");
+                        // println!("DEBUG: I'm adding this command to 'commands' list: {:?}", words);
+                        commands.push(words.clone());
+                    };
+                };
+            };
+            commands
+        },
     }
 }
 

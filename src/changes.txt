@@ -9,16 +9,20 @@ Release 0.1.0:
     RUSH: Can understand some built-in commands and execute commands 
 
 Release 0.1.1 [PLANNED]:
+    - Waiting:
     [ ] *:    Use "for (index, something) in something_else.into_iter().enumerate()" instead of separate while loops and "index" variables
     [ ] JUNK: Add a tool to overwrite files with zeroes or random bytes
     [ ] M:    Fix an issue when program crashed while moving data across disks
     [ ] M:    Files aren't moving when user tries to move them to "."
 
 Release 0.2.0 [PLANNED]:
+    - 26.12.2023:
+    [X]       Keyboard shortcuts would be nice
+    - Waiting:
     [ ] RUSH: Run files (scripts) passed as arguments from CLI
     [ ]       Ability to view and modify variables
     [ ]       Restricted shell mode
     [ ]       Do more logical operations: Like "if"
-    [ ]       Keyboard shortcuts would be nice
     [ ]       File mode
+    [ ]       Sleep/wait command
 
