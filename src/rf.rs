@@ -44,7 +44,7 @@ fn main() {
         // Ask user if he/she really wants to remove a file (if '-a'/'-ask' is available)
         for s in &swcs {
             if s != "a" && s != "ask" && s != "v" {
-                eprintln!("Unknown change: {s}");
+                eprintln!("Unknown switch: {s}");
                 process::exit(1);
             }
             if s == "a" || s == "ask" {
