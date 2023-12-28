@@ -33,3 +33,4 @@
 - RUSH: Restricted shell mode
 - RUSH: File mode
 - RUSH: Sleep/wait command
+- RUSH: History

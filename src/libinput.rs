@@ -24,8 +24,8 @@ pub fn get(prompt:String) -> Vec<String> {
     io::stdout().flush().expect("Cannot flush output!");
         // Read line into "input"
         // Process each character written on keyboard
-        let cursor_y = crossterm::cursor::position().expect("Failed to obtain cursor position!").0;
-        let mut input_index = cursor_y;
+        let initial_cur_pos = crossterm::cursor::position().expect("Failed to obtain cursor position!").0;
+        let mut actual_cur_pos = initial_cur_pos;
         loop {
             // Go to raw mode to get more control over terminal
             crossterm::terminal::enable_raw_mode().unwrap();
@@ -37,23 +37,26 @@ pub fn get(prompt:String) -> Vec<String> {
             match event {
                 // CTRL+Z: Quit
                 Key(KeyEvent {code: KeyCode::Char('z'), modifiers: KeyModifiers::CONTROL, ..}) => {
+                    // Disable raw mode
                     crossterm::terminal::disable_raw_mode().expect("Cannot quit from raw terminal mode!");
+                    // Run "exit 1"
                     input = "exit 1".to_string();
                     break;
                 },
 
                 // ANY OTHER: Show it on keyboard and add it to "input" variable
                 Key(KeyEvent {code: KeyCode::Char(c), ..}) => {
-                    input_index += 1;
-                    input.push(c);
+                    // Insert a char in "input" on position where cursor is located
+                    input.insert((actual_cur_pos-initial_cur_pos).into(), c);
+                    // Move cursor to right as we type
+                    actual_cur_pos += 1;
                 },
                 
                 // ARROWS: Cursor movement
                 Key(KeyEvent {code: KeyCode::Left, ..}) => {
-                    if input_index > cursor_y {
-                        input_index -= 1;
-                        print!("{}", crossterm::cursor::MoveToColumn(input_index));
-                        continue;
+                    if actual_cur_pos > initial_cur_pos {
+                        // Move cursor to left
+                        actual_cur_pos -= 1;
                     }
                     else {
                         print!("\x07");
@@ -62,16 +65,23 @@ pub fn get(prompt:String) -> Vec<String> {
                     
                 },
                 Key(KeyEvent {code: KeyCode::Right, ..}) => {
-                    if input_index < (input.len()+2).try_into().unwrap() {
-                        input_index += 1;
-                        print!("{}", crossterm::cursor::MoveToColumn(input_index));
-                        continue;
+                    if actual_cur_pos < (input.len()+2).try_into().unwrap() {
+                        // Move cursor to right
+                        actual_cur_pos += 1;
                     }
                     else {
                         print!("\x07");
                         continue;
                     };
                 },
+                Key(KeyEvent {code: KeyCode::Home, ..}) => {
+                    // Move cursor back to the prompt
+                    actual_cur_pos=initial_cur_pos;
+                }
+                Key(KeyEvent {code: KeyCode::End, ..}) => {
+                    // Move where "input" is reaching it's end
+                    actual_cur_pos=(input.len() as u16)+initial_cur_pos;
+                }
 
                 // ENTER: Quickly append newline character to "input" and stop waiting for input by breaking out of the loop
                 Key(KeyEvent {code: KeyCode::Enter, ..}) => {
@@ -81,24 +91,36 @@ pub fn get(prompt:String) -> Vec<String> {
                 },
                 // BACKSPACE: Remove character on cursor
                 Key(KeyEvent {code: KeyCode::Backspace, ..}) => {
-                    if input_index-cursor_y != input.len().try_into().unwrap() {
-                        input.remove((input_index-cursor_y).into());
-                        crossterm::terminal::disable_raw_mode().unwrap();
+                    if actual_cur_pos > initial_cur_pos {
+                        // Delete from "input" where cursor is located
+                        if actual_cur_pos-initial_cur_pos != input.len().try_into().unwrap() {
+                            input.remove((actual_cur_pos-initial_cur_pos-1).into());
+                        }
+                        else {
+                            input.pop();
+                        };
+                        // Move cursor
+                        actual_cur_pos -= 1;
                     }
                     else {
-                        input.pop();
-                    }
+                        print!("\x07");
+                    };
+                    
                 },
-
+                // OTHER
                 _ => {
-                    input = "exit 1".to_string();
-                    break;
+                    // Bell!
+                    print!("\x07");
                 },
             };
-            // Show what's in input
+            // Move to start of the column
             print!("\r");
+            // Clear everything on that line
             print!("{}", Clear(ClearType::CurrentLine));
+            // Show prompt and contents of input
             print!("{}{}", prompt, input);
+            // Move cursor to position defined in "actual_cur_pos"
+            print!("{}", crossterm::cursor::MoveToColumn(actual_cur_pos)); 
             // Flush on start and end of the loop
             flush();
         };
