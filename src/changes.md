@@ -31,6 +31,7 @@
 - L: Less spaghetti code
 - C: Heavily rewritten to fix many bugs and ditch spaghetti code
 - M: Same as for the previous program since "M" does practically the same job as "C"
+- INFO, LF and JUNK changed their names
 
 ## Waiting features:
 

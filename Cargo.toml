@@ -39,24 +39,20 @@ name = "hl"
 path = "src/hl.rs"
 
 [[bin]]
-name = "info"
-path = "src/info.rs"
-
-[[bin]]
-name = "junk"
-path = "src/junk.rs"
-
-[[bin]]
 name = "l"
 path = "src/l.rs"
 
 [[bin]]
-name = "lf"
-path = "src/lf.rs"
+name = "loathe"
+path = "src/loathe.rs"
 
 [[bin]]
 name = "m"
 path = "src/m.rs"
+
+[[bin]]
+name = "md"
+path = "src/md.rs"
 
 [[bin]]
 name = "own"
@@ -81,6 +77,10 @@ path = "src/rf.rs"
 [[bin]]
 name = "rush"
 path = "src/rush.rs"
+
+[[bin]]
+name = "seek"
+path = "src/seek.rs"
 
 [[bin]]
 name = "sl"
