@@ -1,6 +1,6 @@
 use std::path::Path;
+use std::path::PathBuf;
 use std::process;
-use std::fs;
 mod libargs;
 mod libdir;
 
@@ -52,8 +52,11 @@ fn main() {
             if index < opts.len() {println!();}
             continue;
         }
-        let dir_to_list = fs::canonicalize(&opts[index]).unwrap();
-        showdir(&dir_to_list, &hidden, &rec);
+        // This is a name of directory that was requested
+        let original_request = &opts[index];
+        let dir_to_list = &opts[index];
+
+        showdir(&PathBuf::from(original_request), &PathBuf::from(dir_to_list), &hidden, &rec);
         index+=1;
         if index < opts.len() {
             println!();
@@ -62,26 +65,19 @@ fn main() {
 
 }
 
-fn showdir(dir:&Path, hidden: &bool, rec:&bool) {
+fn showdir(original_request:&Path, dir:&Path, hidden: &bool, rec:&bool) {
     let result = libdir::browse(dir);
-    let mut output = Vec::new();
     
-    for r in &result {
-        let justname = r.file_name().unwrap().to_os_string().into_string().unwrap();
-        let cutpath = r.strip_prefix(dir).unwrap();
-        if !justname.starts_with('.') || justname.starts_with('.') && *hidden {
-            output.push(cutpath);
-        }
-    }
-    
-    output.sort();
-    for s in output {
-        println!("{}", s.display());
-    }
+    for element in result {
+        let filename_without_og = element.strip_prefix(original_request).unwrap();
+        let filename_without_any_dir = element.file_name().unwrap().to_os_string().into_string().unwrap();
 
-    for r in libdir::browse(dir) {
-        if *rec && r.is_dir() {
-            showdir(r.as_path(), hidden, rec);
-        }
-    }
+        let is_hidden = filename_without_any_dir.starts_with('.');
+        if !is_hidden || *hidden {
+            println!("{}", filename_without_og.display());
+            if element.is_dir() && *rec {
+                showdir(original_request, &original_request.join(filename_without_og), hidden, rec);
+            };
+        };
+    };
 }

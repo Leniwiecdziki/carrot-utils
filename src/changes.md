@@ -26,8 +26,15 @@
 - RUSH: Support for keyboard shortcuts
 - RUSH: Separation of some code from RUSH to libinput
 
+## Added on 29.12.2023
+
+- L: Less spaghetti code
+- C: Heavily rewritten to fix many bugs and ditch spaghetti code
+- M: Same as for the previous program since "M" does practically the same job as "C"
+
 ## Waiting features:
 
+- RD, RF, JUNK: Migrate ask() to libinput
 - RUSH: Run files (scripts) passed as arguments from CLI
 - RUSH: Ability to view and modify variables
 - RUSH: Restricted shell mode

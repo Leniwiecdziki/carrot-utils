@@ -1,152 +1,267 @@
 mod libargs;
+mod libdir;
 use std::io::ErrorKind;
-use std::path::PathBuf;
-use std::fs;
-use std::env;
 use std::process;
-use std::fs::File;
+use std::fs;
+use std::path::PathBuf;
 use std::io::Read;
+use std::fs::File;
 
 fn main() {
-    // Import all arguments from command line
     let opts = libargs::opts();
     let (swcs, vals) = libargs::swcs();
-    for v in vals {
-        if !v.is_empty() {
-            eprintln!("None of this program's switches accepts a value."); process::exit(1); 
-        } 
-    }
-    let mut verbose = false;
-    let mut ow = false;
-    for s in swcs {
-        if s != "v" && s != "o" && s != "overwrite" {
-            eprintln!("Unknown switch: {s}");
-            process::exit(1);
-        }
-        if s == "o" || s == "overwrite" {
-            ow = true;
-        }
-        else {
-            verbose = true;
-        }
-    }
-    // Check how many arguments are available
-    // If only two file names are given - the destination can be file or directory
-    // If more than two file names are given - the destination must be a directory
-    let mustdir = match opts.len() {
+    // Is user moving many files?
+    let manysrcs = match opts.len() {
         2 => false,
         3.. => true,
         _ => { eprintln!("This program requires at least two file names!");process::exit(1); },
     };
 
-    // Go through every passed option except from the first and last.
+    let mut verbose = false;
+    let mut overwrite = false;
+    let mut link = false;
+
     let mut index = 0;
-    if verbose {
-        println!("Moving to: {}", &opts[opts.len()-1]);
-    }
+    for v in vals {
+        if !v.is_empty() {
+            eprintln!("None of this program's switches accepts a value!"); process::exit(1); 
+        } 
+    };
+    while index < swcs.len() {
+        let s = &swcs[index];
 
-    while index < opts.len() && index != opts.len()-1 {
-        // Get destination (the last option)
-        let dest:PathBuf = PathBuf::from(&opts[opts.len()-1]);
-
-        // Check if destination exists
-        let mut noexists = fs::metadata(&dest).is_err();
-
-        // If overwriting is disabled, refuse moving to a new location if destination exists
-        if ow && ! noexists {
-            eprintln!("{}: Overwriting is disabled! Refusing to move resource to existing destination!", dest.display());
+        if s != "o" && s != "overwrite" && s != "v" && s != "verbose" && s != "l" && s != "link" {
+            eprintln!("Unknown switch: {s}");
             process::exit(1);
         }
-
-        // Create new dest-directory if it doesn't exist and dest must be a directory
-        if mustdir && noexists {
-            match fs::create_dir_all(&dest) {
-                Err(e) => { eprintln!("{}: Dicrectory wasn't added because of an error: {:?}!", dest.display(), e.kind()); noexists=true },
-                _ => noexists=false,
-            }
+        if s == "o" || s == "overwrite" {
+            overwrite = true;
         }
-        let isdir = !noexists && fs::metadata(&dest).unwrap().is_dir();
-        // If existing file is not a directory and if we cannot move to a file - print an error
-        if ! isdir && mustdir {
-            eprintln!("{}: Multiple resources can be moved only to a directory!", dest.display());
-            process::exit(1);
+        if s == "v" || s == "verbose" {
+            verbose = true;
         }
-
-        // Moving a file to dir is impossible - move to dir/file instead.
-        let mod_dest = if dest == PathBuf::from(".") {
-            noexists = true;
-            format!("{}/{}", env::current_dir().unwrap().display(), &opts[index])
+        if s == "l" || s == "link" {
+            link = true;
         }
-        else if isdir {
-            noexists = true;
-            format!("{}/{}", &dest.display(), &opts[index])
-        }
-        else {
-            format!("{}", &dest.display())
-        };
-        // Test if both files are the same (if destination exists)
-        let mut buffer1 = Vec::new();
-        let mut buffer2 = Vec::new();
-        if ! noexists {
-            if let Err(e) = File::open(&opts[index]).unwrap().read_to_end(&mut buffer1) {
-                eprintln!("{}: Cannot copy resource because of a problem with source: {:?}!", mod_dest, e.kind());
-            };
-            if let Err(e) = File::open(&opts[index]).unwrap().read_to_end(&mut buffer2) {
-                eprintln!("{}: Cannot copy resource because of a problem with destination: {:?}!", mod_dest, e.kind());
-            };
-        }
-        else {
-            buffer1=[1].to_vec();
-            buffer2=[2].to_vec();
-        }
-            if buffer1 == buffer2 {
-                eprintln!("{}: Source and destination resources are equal!", opts[index]);
-                index += 1;
-                continue;
-            }
-            match fs::rename(&opts[index], &mod_dest) {
-                Err(e) => {
-                    /*
-                    Move operation is nothing else than just changing a link to some inode on disk. This is a nice feature, 
-                    because nothing is really moving on disk so the process is quicker.
-                    But when can't do this when moving data across different disks!
-
-                    Copy the file to a new path and remove it's original when "CrossedDevices" error appears
-                     */
-
-                    // Detect if CrossedDevices appeared (it is a nightly feature of Rust language for now!!!)
-                    match e.kind() {
-                        /*
-                            Method to detect CrossesDevices error is available only in nightly releases of Rust!!!
-                            io::ErrorKind::CrossesDevices => {
-                         */ 
-                        ErrorKind::Other => {
-                            // Copy instead of moving
-                            match fs::copy(&opts[index], &mod_dest) {
-                                Err(e) => eprintln!("{}: Moving failed while copying to another disk because of an error: {}", opts[index], e.kind()),
-                                Ok(_) => {
-                                    // Remove original file or a directory that we copied
-                                    if isdir {
-                                        match fs::remove_dir_all(&opts[index]) {
-                                            Err(e) => eprintln!("{}: Moving failed while removing older resource because of an error: {}", opts[index], e.kind()),
-                                            Ok(_) => { if verbose {println!("{}: Moved successfully.", opts[index])} }
-                                        };
-                                    }
-                                    else {
-                                        match fs::remove_file(&opts[index]) {
-                                            Err(e) => eprintln!("{}: Moving failed while removing older resource because of an error: {}", opts[index], e.kind()),
-                                            Ok(_) => { if verbose {println!("{}: Moved successfully.", opts[index])} }
-                                        };
-                                    }
-                                }
-                                
-                            }
-                        },
-                    _ => eprintln!("{}: Cannot move resource because of an error: {:?}!", opts[index], e.kind()),
-                    };
-                },
-                _ => { if verbose {println!("{}: Moved successfully.", opts[index])} },
-            };
         index += 1;
+    };
+
+    // Check if destination element exists and it's type
+    let command_to_match = if link {
+        PathBuf::from(&opts.last().unwrap()).symlink_metadata()
+    } else {
+        PathBuf::from(&opts.last().unwrap()).metadata()
+    };
+    let dest_is_dir = match &command_to_match {
+        Err(e) => {
+            if e.kind() == ErrorKind::NotFound {
+                true
+            }
+            else {
+                eprintln!("{}: Failed to get destination metadata because of an error: {:?}", &opts[0], e.kind());
+                process::exit(1);
+            }
+        },
+        Ok(md) => {
+            md.is_dir()
+        },
+    };
+
+    // Print error if there is an element that was referenced more than once
+    let mut compare = Vec::new();
+    for i in &opts {
+        if compare.contains(&i) {
+            eprintln!("{i}: File referenced more than once!");
+            process::exit(1);
+        }
+        else {
+            compare.push(i);
+        };
+    };
+
+    // Many dirs/files to file
+    if manysrcs && !dest_is_dir {
+        eprintln!("Cannot move multiple elements to a file!");
+        process::exit(1);
     }
+    // Dir to file
+    else if !manysrcs && PathBuf::from(&opts[0]).is_dir() && (!PathBuf::from(&opts[1]).is_dir() && PathBuf::from(&opts[1]).exists() ) {
+        eprintln!("Cannot move directory not to a directory!");
+        process::exit(1);
+    }
+    else {
+        // This loop will check for all possible errors before actually performing any changes to filesystem.
+        for (index, source) in opts[..opts.len()-1].iter().enumerate() {
+            // Save the name of destination file
+            let mut dest = PathBuf::from(opts.last().unwrap());
+
+            // Check if source file is a directory or not
+            let command_to_match = if link {
+                PathBuf::from(&opts[index]).symlink_metadata()
+            } else {
+                PathBuf::from(&opts[index]).metadata()
+            };
+            let source_is_dir = match &command_to_match {
+                Err(e) => {
+                    eprintln!("{source}: Failed to get source metadata because of an error: {:?}", e.kind());
+                    process::exit(1);
+                },
+                Ok(md) => {
+                    md.is_dir()
+                },
+            };
+
+            // File to file
+            if !source_is_dir && !dest_is_dir {
+                // Check if both files are equal
+                compare_files(source, &dest);
+            }
+
+            // File to dir
+            if !source_is_dir && dest_is_dir {
+                dest = dest.join(source);
+                compare_files(source, &dest);
+            }
+            // Dir to dir
+            if source_is_dir && dest_is_dir {
+                // dest = dest.join(source);
+            }
+        };
+
+        // This loop will FINALLY make changes to filesystem without any checks.
+        for (index, source) in opts[..opts.len()-1].iter().enumerate() {
+            // Same as in previous loop
+            let mut dest = PathBuf::from(opts.last().unwrap());
+            // Same as in previous loop
+            let command_to_match = if link {PathBuf::from(&opts[index]).symlink_metadata()} 
+            else { PathBuf::from(&opts[index]).metadata()};
+            let source_is_dir = match &command_to_match {
+                Err(e) => {eprintln!("{source}: Failed to get source metadata because of an error: {:?}", e.kind());process::exit(1);},
+                Ok(md) => {md.is_dir()},
+            };
+
+            // File to file
+            if !source_is_dir && !dest_is_dir {
+                rename(&PathBuf::from(source), &dest, &verbose, &overwrite)
+            }
+
+            // File to dir
+            if !source_is_dir && dest_is_dir {
+                dest = dest.join(source);
+                rename(&PathBuf::from(source), &dest, &verbose, &overwrite)
+            }
+            // Dir to dir
+            if source_is_dir && dest_is_dir {
+                /*
+                Example directory A:
+                - dogs/1.png
+                - dogs/2.png
+                - dogs/3.png
+                - dogs/4.png
+
+                Example directory B:
+                - animals/cats/
+                - animals/hamsters/
+                - animals/spiders/
+
+                If user tries to copy "dogs" with this command: c dogs/ animals
+                Contents of "dogs" will be written directly to "animals", so the effect will look like this:
+                - animals/cats/
+                - animals/hamsters/
+                - animals/spiders/
+                - animals/1.png
+                - animals/2.png
+                - animals/3.png
+                - animals/4.png
+
+                But if user tries to copy "dogs" without trailing "/" in it's name with this command: c dogs animals
+                It won't write contents of "dogs", but the directory itself, so the effect would look like this:
+                - animals/cats/
+                - animals/hamsters/
+                - animals/spiders/
+                - animals/dogs/
+                With all doggie photos in it :D
+                */ 
+                if !source.ends_with('/') {
+                    dest = dest.join(source);
+                }
+                browsedir(&PathBuf::from(source), &dest, &verbose, &overwrite);
+            }
+        }
+
+    };
+}
+
+// Don't let to move identical files
+fn compare_files(source:&String, dest:&PathBuf) {
+    let mut buffer1 = Vec::new();
+    let mut buffer2 = Vec::new();
+    // Check if file is opened properly
+    match File::open(source) {
+        // Save it's contents to buffer1
+        Ok(mut opened_file) => {
+            opened_file.read_to_end(&mut buffer1).unwrap();
+        },
+        // Lack of source file is always a bad sign
+        Err(e) => {
+            eprintln!("{}: Failed to read a file because of an error: {:?}!", &dest.display(), e.kind());
+            process::exit(1);
+        },
+    };
+    // Check if file is opened properly
+    match File::open(dest) {
+        // Save it's contents to buffer2
+        Ok(mut opened_file) => {
+            opened_file.read_to_end(&mut buffer2).unwrap();
+        },
+        // Lack of source file is okay. If file isn't found - just save "1" to the buffer and ingore the error
+        Err(e) => {
+            if e.kind() == ErrorKind::NotFound {
+            buffer2 = [1].to_vec()
+            }
+        // If there is different kind of error - terminate
+            else {
+                eprintln!("{}: Failed to read a file because of an error: {:?}!", &dest.display(), e.kind());
+                process::exit(1);
+            };
+        },
+    };
+
+    if buffer1 == buffer2 {
+        eprintln!("{source}: Source and destination elements are the same!");
+        process::exit(1);
+    }
+}
+
+fn browsedir(src:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool) {
+    // Create directory on destination
+    if let Err(e) = fs::create_dir_all(dest) {
+        eprintln!("{:?}: Failed to create destination directory because of an error: {:?}", dest.display(), e.kind());
+        process::exit(1);
+    };
+    // Contents of a directory that needs to be moved
+    let srclist = libdir::browse(&PathBuf::from(src));
+
+    for element in srclist {
+        let stripped_src = element.strip_prefix(src).expect("Moving failed when program tried to strip destination prefix!");
+        let move_here = dest.join(stripped_src);
+        if element.is_dir() {
+            browsedir(&element, &move_here, verbose, overwrite);
+        }
+        else {
+            rename(&element, &move_here, verbose, overwrite);
+        };
+    }
+}
+
+fn rename(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool) {
+    if *overwrite || !dest.exists() {
+        match fs::rename(source, dest) {
+            Err(e) => eprintln!("{}: Cannot move resource because of an error: {}", &dest.display(), e.kind()),
+            Ok(_) => if *verbose {println!("{}: Moved successfully", &source.display())},
+        };
+    }
+    else {
+        eprintln!("{}: Overwriting is disabled! Refusing to use this destination!", dest.display())
+    };
 }
