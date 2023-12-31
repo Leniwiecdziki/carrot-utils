@@ -21,24 +21,47 @@
 
 # Release 0.2.0 (Planned)
 
-## Added on 28.12.2023
+### Added on 28.12.2023
 
 - RUSH: Support for keyboard shortcuts
 - RUSH: Separation of some code from RUSH to libinput
 
-## Added on 29.12.2023
+### Added on 29.12.2023
 
 - L: Less spaghetti code
 - C: Heavily rewritten to fix many bugs and ditch spaghetti code
 - M: Same as for the previous program since "M" does practically the same job as "C"
 - INFO, LF and JUNK changed their names
 
-## Waiting features:
+### Added on 30.12.2023
 
-- RD, RF, JUNK: Migrate ask() to libinput
+- RF, RD, LOATHE: Migrate ask() to libinput
+- C, M: Ability to ask before actually overwritting files
+- LIBDIR: No more unwrapped errors
+- L: Ability to sort output alphabetically is back again!
+
+### Added on 31.12.2023
+
+- MD: Ability to show only selected information
+- MD: Has an option to enable/disable link resolving
+- *: Added license to the source tree
+
+### Waiting features:
+
+- L: Colorful output
+- OWN: Use recently added chown added to Rust's STDLIB
+- AD: Ability to disable creating parent directories if they do not exists
 - RUSH: Run files (scripts) passed as arguments from CLI
 - RUSH: Ability to view and modify variables
 - RUSH: Restricted shell mode
 - RUSH: File mode
 - RUSH: Sleep/wait command
 - RUSH: History
+
+# Release 0.3.0:
+
+### Waiting features:
+
+- REX: Add a tool that executes commands as other users
+- GET: Add a tool that can retrieve information about system
+- SET: Settings!

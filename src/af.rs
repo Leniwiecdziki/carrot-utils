@@ -14,7 +14,7 @@ fn main() {
     }
     let mut verbose = false;
     for s in swcs {
-        if s != "v" {
+        if s != "v" && s != "verbose" {
             eprintln!("Unknown switch: {s}");
             process::exit(1);
         }

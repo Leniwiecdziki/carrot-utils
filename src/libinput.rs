@@ -1,4 +1,5 @@
 #![allow(unused_variables)]
+use std::process;
 use std::io;
 use std::io::Write;
 use crossterm::terminal::{Clear, ClearType};
@@ -37,11 +38,10 @@ pub fn get(prompt:String) -> Vec<String> {
             match event {
                 // CTRL+Z: Quit
                 Key(KeyEvent {code: KeyCode::Char('z'), modifiers: KeyModifiers::CONTROL, ..}) => {
-                    // Disable raw mode
+                    // Disable raw mode and quit
                     crossterm::terminal::disable_raw_mode().expect("Cannot quit from raw terminal mode!");
-                    // Run "exit 1"
-                    input = "exit 1".to_string();
-                    break;
+                    println!();
+                    process::exit(1);
                 },
 
                 // ANY OTHER: Show it on keyboard and add it to "input" variable

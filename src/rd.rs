@@ -4,22 +4,20 @@ use std::fs;
 use std::process;
 use std::io;
 mod libargs;
+mod libinput;
 
-fn ask(opt: &String, mut _index: usize) -> bool {
-    let mut input = String::new();
+fn ask(opt: &String) -> bool {
     let mut toclear:bool = false;
-    println!("{}: Do you really want to delete this? [y/n]: ", opt);
-    io::stdin().read_line(&mut input).unwrap();
-    if &mut input.to_lowercase() == "y\n" {
-        toclear = true;
+    let input = libinput::get(format!("{}: Do you really want to delete this? [y/n]: ", opt));
+    if input.len() != 1 {
+        println!("Sorry! I don't undestand your input.");
+        ask(opt);
     }
-    else if &mut input.to_lowercase() == "n\n" {
-        toclear = false;
-    }
-    else {
-        println!("I do not understand, can you repeat?");
-        ask(opt, _index);
-    }
+    let lowercased_input = input[0].trim().to_lowercase();
+    if lowercased_input == "y" || lowercased_input == "yes" { toclear = true; }
+    else if lowercased_input == "n" || lowercased_input == "no" { toclear = false; }
+    else { println!("Sorry! I don't undestand your input."); ask(opt); }
+
     toclear
 }
 
@@ -43,17 +41,17 @@ fn main() {
     let mut verbose = false;
     let mut rec = false;
     for s in swcs {
-        if s != "a" && s != "ask" && s != "r" && s != "rec" && s != "v" {
+        if s != "a" && s != "ask" && s != "r" && s != "rec" && s != "v" && s != "verbose" {
             eprintln!("Unknown switch: {s}");
             process::exit(1);
         }
         if s == "a" || s == "ask" {
-            toclear = ask(&opts[index], index);
+            toclear = ask(&opts[index]);
         }
         if s == "r" || s == "rec" {
             rec = true;
         }
-        if s == "v" {
+        if s == "v" || s == "verbose" {
             verbose = true;
         }
     }

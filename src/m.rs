@@ -1,5 +1,6 @@
 mod libargs;
 mod libdir;
+mod libinput;
 use std::io::ErrorKind;
 use std::process;
 use std::fs;
@@ -18,6 +19,7 @@ fn main() {
     };
 
     let mut verbose = false;
+    let mut ask = false;
     let mut overwrite = false;
     let mut link = false;
 
@@ -30,7 +32,8 @@ fn main() {
     while index < swcs.len() {
         let s = &swcs[index];
 
-        if s != "o" && s != "overwrite" && s != "v" && s != "verbose" && s != "l" && s != "link" {
+        if s != "o" && s != "overwrite" && s != "v" && s != "verbose" && s != "l" && s != "link"
+        && s != "a" && s != "ask" {
             eprintln!("Unknown switch: {s}");
             process::exit(1);
         }
@@ -43,8 +46,16 @@ fn main() {
         if s == "l" || s == "link" {
             link = true;
         }
+        if s == "a" || s == "ask" {
+            ask = true;
+        }
         index += 1;
     };
+
+    if ask && overwrite {
+        eprintln!("Switch \"overwrite\" collides with \"ask\"!");
+        process::exit(1);
+    }
 
     // Check if destination element exists and it's type
     let command_to_match = if link {
@@ -52,10 +63,10 @@ fn main() {
     } else {
         PathBuf::from(&opts.last().unwrap()).metadata()
     };
-    let dest_is_dir = match &command_to_match {
+    let mut dest_type = match &command_to_match {
         Err(e) => {
             if e.kind() == ErrorKind::NotFound {
-                true
+                "notfound".to_string()
             }
             else {
                 eprintln!("{}: Failed to get destination metadata because of an error: {:?}", &opts[0], e.kind());
@@ -63,7 +74,12 @@ fn main() {
             }
         },
         Ok(md) => {
-            md.is_dir()
+            if md.is_dir() {
+                "dir".to_string()
+            }
+            else {
+                "file".to_string()
+            }
         },
     };
 
@@ -79,13 +95,24 @@ fn main() {
         };
     };
 
+    // If destination is not found AND user requested only a directory OR there are many requests
+    if dest_type == "notfound" && (PathBuf::from(&opts[0]).is_dir() || manysrcs) {
+        // ... the destination has to be a directory
+        dest_type = "dir".to_string();
+    }
+    // But when there is only a single file request
+    else if !manysrcs && dest_type == "notfound" {
+        // The destination has to be a file
+        dest_type = "file".to_string();
+    };
+
     // Many dirs/files to file
-    if manysrcs && !dest_is_dir {
+    if manysrcs && dest_type == "file" {
         eprintln!("Cannot move multiple elements to a file!");
         process::exit(1);
     }
     // Dir to file
-    else if !manysrcs && PathBuf::from(&opts[0]).is_dir() && (!PathBuf::from(&opts[1]).is_dir() && PathBuf::from(&opts[1]).exists() ) {
+    else if !manysrcs && PathBuf::from(&opts[0]).is_dir() && (dest_type != "dir" ) {
         eprintln!("Cannot move directory not to a directory!");
         process::exit(1);
     }
@@ -112,18 +139,18 @@ fn main() {
             };
 
             // File to file
-            if !source_is_dir && !dest_is_dir {
+            if !source_is_dir && dest_type == "file" {
                 // Check if both files are equal
                 compare_files(source, &dest);
             }
 
             // File to dir
-            if !source_is_dir && dest_is_dir {
+            if !source_is_dir && dest_type == "dir" {
                 dest = dest.join(source);
                 compare_files(source, &dest);
             }
             // Dir to dir
-            if source_is_dir && dest_is_dir {
+            if source_is_dir && dest_type == "dir" {
                 // dest = dest.join(source);
             }
         };
@@ -141,17 +168,17 @@ fn main() {
             };
 
             // File to file
-            if !source_is_dir && !dest_is_dir {
-                rename(&PathBuf::from(source), &dest, &verbose, &overwrite)
+            if !source_is_dir && dest_type == "file" {
+                rename(&PathBuf::from(source), &dest, &verbose, &overwrite, &ask)
             }
 
             // File to dir
-            if !source_is_dir && dest_is_dir {
+            if !source_is_dir && dest_type == "dir" {
                 dest = dest.join(source);
-                rename(&PathBuf::from(source), &dest, &verbose, &overwrite)
+                rename(&PathBuf::from(source), &dest, &verbose, &overwrite, &ask)
             }
             // Dir to dir
-            if source_is_dir && dest_is_dir {
+            if source_is_dir && dest_type == "dir" {
                 /*
                 Example directory A:
                 - dogs/1.png
@@ -185,7 +212,7 @@ fn main() {
                 if !source.ends_with('/') {
                     dest = dest.join(source);
                 }
-                browsedir(&PathBuf::from(source), &dest, &verbose, &overwrite);
+                browsedir(&PathBuf::from(source), &dest, &verbose, &overwrite, &ask);
             }
         }
 
@@ -233,7 +260,7 @@ fn compare_files(source:&String, dest:&PathBuf) {
     }
 }
 
-fn browsedir(src:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool) {
+fn browsedir(src:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&bool) {
     // Create directory on destination
     if let Err(e) = fs::create_dir_all(dest) {
         eprintln!("{:?}: Failed to create destination directory because of an error: {:?}", dest.display(), e.kind());
@@ -246,22 +273,44 @@ fn browsedir(src:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool) {
         let stripped_src = element.strip_prefix(src).expect("Moving failed when program tried to strip destination prefix!");
         let move_here = dest.join(stripped_src);
         if element.is_dir() {
-            browsedir(&element, &move_here, verbose, overwrite);
+            browsedir(&element, &move_here, verbose, overwrite, ask);
         }
         else {
-            rename(&element, &move_here, verbose, overwrite);
+            rename(&element, &move_here, verbose, overwrite, ask);
         };
     }
 }
 
-fn rename(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool) {
-    if *overwrite || !dest.exists() {
+fn rename(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&bool) {
+    let overwrite = if *ask {
+        question(dest)
+    }
+    else {
+        *overwrite
+    };
+
+    if overwrite || !dest.exists() {
         match fs::rename(source, dest) {
-            Err(e) => eprintln!("{}: Cannot move resource because of an error: {}", &dest.display(), e.kind()),
+            Err(e) => eprintln!("{}: Cannot move resource because of an error: {:?}", &source.display(), e.kind()),
             Ok(_) => if *verbose {println!("{}: Moved successfully", &source.display())},
         };
     }
     else {
         eprintln!("{}: Overwriting is disabled! Refusing to use this destination!", dest.display())
     };
+}
+
+fn question(opt: &PathBuf) -> bool {
+    let mut toclear:bool = false;
+    let input = libinput::get(format!("{}: Do you really want to delete this? [y/n]: ", opt.display()));
+    if input.len() != 1 {
+        println!("Sorry! I don't undestand your input.");
+        question(opt);
+    }
+    let lowercased_input = input[0].trim().to_lowercase();
+    if lowercased_input == "y" || lowercased_input == "yes" { toclear = true; }
+    else if lowercased_input == "n" || lowercased_input == "no" { toclear = false; }
+    else { println!("Sorry! I don't undestand your input."); question(opt); }
+
+    toclear
 }

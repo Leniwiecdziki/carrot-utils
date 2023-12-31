@@ -1,13 +1,13 @@
+use std::os::unix::fs::MetadataExt;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process;
+use std::fs;
 use std::ffi::CString;
 mod libargs;
 mod lib2human;
 mod lib2machine;
-mod libfileinfo;
 mod libdir;
-extern crate libc;
 use libc::lchown;
 
 fn main() {
@@ -15,6 +15,7 @@ fn main() {
     let (swcs, vals) = libargs::swcs();
 
     let mut rec = false;
+    let mut link = false;
     let mut verbose = false;
     let mut index = 0;
     for v in vals {
@@ -25,14 +26,19 @@ fn main() {
     while index < swcs.len() {
         let s = &swcs[index];
 
-        if s != "r" && s != "rec" && s != "v" {
+        if s != "r" && s != "rec"
+        && s != "l" && s != "link"
+        && s != "v" && s != "verbose" {
             eprintln!("Unknown switch: {s}");
             process::exit(1);
         }
         if s == "r" || s == "rec" {
             rec = true;
         }
-        if s == "v" {
+        if s == "l" || s == "link" {
+            link = true;
+        }
+        if s == "v" || s == "verbose" {
             verbose = true;
         }
         index += 1;
@@ -48,73 +54,72 @@ fn main() {
     }
 
     let mut index = 1;
-    let split: Vec<_> = opts[0].split(',').collect();
+    let ids: Vec<_> = opts[0].split(',').collect();
+    let uid = ids[0].trim();
+    let gid = ids[1].trim();
+
+    // Something is not quiet right if user requested more than two ID's
+    if ids.len() > 2 {
+        eprintln!("Maximally two ID's can be requested!");
+        process::exit(1);
+    }
 
     while index < opts.len() {
-        // Convert uid and gid to a number (u32)
+        let command_to_match = if link {
+            fs::symlink_metadata(&opts[index])
+        }
+        else {
+            fs::metadata(&opts[index])
+        };
+        // Convert ID's requested by user in arguments to a numbers of type u32
         let user =
-            if split[0] == "n" {
-                match libfileinfo::uid(&PathBuf::from(&opts[index])) {
-                    Err(e) => 
-                    {
-                        eprintln!("{}: Could not retrieve ownership of a resource because of an error: {:?}", &opts[index], e.kind());
+            // If user set uid to "-", just use previous ownership ID
+            if uid == "-" {
+                match &command_to_match {
+                    Err(e) => {
+                        eprintln!("{}: Could not get current resource ownership ID: {:?}", &opts[index], e.kind());
                         index += 1;
                         continue;
                     },
-                    Ok(e) =>
-                    {
-                        e
-                    }
-                }
-            }
-            else if split[0] != "n" {
-                match split[0].parse::<u32>() {
-                    Err(e) => 
-                    {
-                        eprintln!("Could not parse user ID because of an error: {:?}", e.kind());
-                        process::exit(1);
-                    }
-                    Ok(e) =>
-                    {
-                        e
+                    Ok(file) => {
+                        file.uid()
                     }
                 }
             }
             else {
-                eprintln!("Could not parse user ID because of an unknown error");
-                process::exit(1);
+                match uid.parse::<u32>() {
+                    Err(e) => {
+                        eprintln!("Could not parse UID because of an error: {:?}", e.kind());
+                        process::exit(1);
+                    }
+                    Ok(file) => {
+                        file
+                    }
+                }
             };
         let group =
-            if split.len() == 1 || split[1] == "n" && split.len() == 2  {
-                match libfileinfo::gid(&PathBuf::from(&opts[index])) {
-                    Err(e) => 
-                    {
-                        eprintln!("{}: Could not retrieve ownership of a resource because of an error: {:?}", &opts[index], e.kind());
+            if ids.len() == 1 || gid == "-" && ids.len() == 2  {
+                match &command_to_match {
+                    Err(e) => {
+                        eprintln!("{}: Could not check current UID because of an error: {:?}", &opts[index], e.kind());
                         index += 1;
                         continue;
                     },
-                    Ok(e) =>
-                    {
-                        e
-                    }
-                }
-            }
-            else if split[1] != "n" && split.len() == 2 {
-                match split[1].parse::<u32>() {
-                    Err(e) => 
-                    {
-                        eprintln!("Could not parse user ID because of an error: {:?}", e.kind());
-                        process::exit(1);
-                    }
-                    Ok(e) =>
-                    {
-                        e
+                    Ok(file) => {
+                        file.gid()
                     }
                 }
             }
             else {
-                eprintln!("Could not parse group ID because of an unknown error");
-                process::exit(1);
+                match gid.parse::<u32>() {
+                    Err(e) => {
+                        eprintln!("{}: Could not check current GID because of an error: {:?}", &opts[index], e.kind());
+                        process::exit(1);
+                    }
+                    Ok(e) =>{
+                        e
+                    }
+                }
             };
         if verbose {
             println!("Setting ownership mode: {user} {group}");
@@ -142,11 +147,11 @@ fn changeown(path:&str, user:&u32, group:&u32, verbose:&bool) {
         );
         if ret == 0 {
             if *verbose {
-                println!("Successfully changed ownership: {}", path);
+                println!("{}: Successfully changed ownership.", path);
             }
         }
         else {
-            eprintln!("Failed to set ownership: {}", path);
+            eprintln!("{}: Failed to set ownership!", path);
         }
     }
 }

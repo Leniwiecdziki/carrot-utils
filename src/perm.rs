@@ -30,7 +30,7 @@ fn main() {
     while index < swcs.len() {
         let s = &swcs[index];
 
-        if s != "r" && s != "rec" && s != "v" {
+        if s != "r" && s != "rec" && s != "v" && s != "verbose" {
             eprintln!("Unknown switch: {s}");
             process::exit(1);
         }
@@ -38,7 +38,7 @@ fn main() {
             rec = true;
         }
 
-        if s == "v" {
+        if s == "v" || s == "verbose" {
             verbose = true;
         }
         index += 1;
