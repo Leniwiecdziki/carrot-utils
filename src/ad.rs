@@ -12,13 +12,18 @@ fn main() {
         } 
     }
     let mut verbose = false;
+    let mut parents = false;
     for s in swcs {
-        if s != "v" && s != "verbose" {
+        if s != "v" && s != "verbose"
+        && s != "p" && s != "parents" {
             eprintln!("Unknown switch: {s}");
             process::exit(1);
         }
-        else {
+        if s == "v" || s == "verbose" {
             verbose = true;
+        }
+        if s == "p" || s == "parents" {
+            parents = true;
         }
     }
 
@@ -36,8 +41,13 @@ fn main() {
             continue;
         }
 
-
-        match fs::create_dir_all(&opts[index]) {
+        let command = if parents {
+            fs::create_dir_all(&opts[index])
+        }
+        else {
+            fs::create_dir(&opts[index])
+        };
+        match command {
             Err(e) => eprintln!("{}: Directory wasn't added because of an error: {:?}!", opts[index], e.kind()),
             _ => if verbose {println!("{}: Added successfully.", opts[index]);},
         }

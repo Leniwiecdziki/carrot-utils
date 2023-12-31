@@ -1,19 +1,19 @@
 
 # Release 0.1.0
 
-## Added on 22.12.2023:
+### Added on 22.12.2023:
 - C: Fixed an issue, when user tried to copy a file to directory with a new name.
 - P: Program was rewritten
 - PERM: Fixed issues with verbose mode still being enabled while it shouldn't
 - RUSH: Added an extremely early shell for CarrotOS
 
-## Added on 23.12.2023:
+### Added on 23.12.2023:
 - C: Fixed directory to directory copying
 - RUSH: Can understand some built-in commands and execute commands 
 
 # Release 0.1.1
 
-## Added on 28.12.2023
+### Added on 28.12.2023
 
 - JUNK: Ability to overwrite files with zeroes or random bytes
 - JUNK: Ability to create files with zeroes or random bytes of desired size
@@ -44,13 +44,13 @@
 
 - MD: Ability to show only selected information
 - MD: Has an option to enable/disable link resolving
+- AD: Ability to disable creating parent directories if they do not exist
 - OWN: Use recently added chown added to Rust's STDLIB
 - *: Added license to the source tree
 
 ### Waiting features:
 
 - L: Colorful output
-- AD: Ability to disable creating parent directories if they do not exists
 - RUSH: Run files (scripts) passed as arguments from CLI
 - RUSH: Ability to view and modify variables
 - RUSH: Restricted shell mode
