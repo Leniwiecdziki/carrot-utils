@@ -1,14 +1,11 @@
-use std::os::unix::fs::MetadataExt;
+use std::os;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process;
-use std::fs;
-use std::ffi::CString;
 mod libargs;
 mod lib2human;
 mod lib2machine;
 mod libdir;
-use libc::lchown;
 
 fn main() {
     let opts = libargs::opts();
@@ -65,26 +62,12 @@ fn main() {
     }
 
     while index < opts.len() {
-        let command_to_match = if link {
-            fs::symlink_metadata(&opts[index])
-        }
-        else {
-            fs::metadata(&opts[index])
-        };
-        // Convert ID's requested by user in arguments to a numbers of type u32
+        // Convert ID's requested by user in arguments, to numbers of type Some(u32)
+        // If user wants to skip changing UID, use None()
         let user =
             // If user set uid to "-", just use previous ownership ID
             if uid == "-" {
-                match &command_to_match {
-                    Err(e) => {
-                        eprintln!("{}: Could not get current resource ownership ID: {:?}", &opts[index], e.kind());
-                        index += 1;
-                        continue;
-                    },
-                    Ok(file) => {
-                        file.uid()
-                    }
-                }
+                None
             }
             else {
                 match uid.parse::<u32>() {
@@ -92,23 +75,14 @@ fn main() {
                         eprintln!("Could not parse UID because of an error: {:?}", e.kind());
                         process::exit(1);
                     }
-                    Ok(file) => {
-                        file
+                    Ok(parsed_uid) => {
+                        Some(parsed_uid)
                     }
                 }
             };
         let group =
             if ids.len() == 1 || gid == "-" && ids.len() == 2  {
-                match &command_to_match {
-                    Err(e) => {
-                        eprintln!("{}: Could not check current UID because of an error: {:?}", &opts[index], e.kind());
-                        index += 1;
-                        continue;
-                    },
-                    Ok(file) => {
-                        file.gid()
-                    }
-                }
+                None
             }
             else {
                 match gid.parse::<u32>() {
@@ -116,56 +90,56 @@ fn main() {
                         eprintln!("{}: Could not check current GID because of an error: {:?}", &opts[index], e.kind());
                         process::exit(1);
                     }
-                    Ok(e) =>{
-                        e
+                    Ok(parsed_gid) =>{
+                        Some(parsed_gid)
                     }
                 }
             };
         if verbose {
-            println!("Setting ownership mode: {user} {group}");
+            print!("Setting ownership mode: ");
+            if let Some(u) = user { print!("{u}") };
+            if let Some(g) = group { print!("{g}") };
+            println!()
         }
         if !PathBuf::from(&opts[index]).is_dir() || PathBuf::from(&opts[index]).is_dir() & !rec {
-            changeown(&opts[index], &user, &group, &verbose);
+            changeown(&opts[index], &user, &group, &verbose, &link);
         }
         else if PathBuf::from(&opts[index]).is_dir() & rec  {
-            changeown(&opts[index], &user, &group, &verbose);
-            browsedir(&PathBuf::from(&opts[index]), &user, &group, &rec, &verbose);
+            changeown(&opts[index], &user, &group, &verbose, &link);
+            browsedir(&PathBuf::from(&opts[index]), &user, &group, &rec, &verbose, &link);
         }
 
         index += 1;
     }
 }
 
-fn changeown(path:&str, user:&u32, group:&u32, verbose:&bool) {
-    // See manpage: chown (2)
-    // Rust doesn't currently support changing file ownership
-    unsafe {
-        // Workaround for "Temporary CString as ptr"
-        let a = CString::new(path).unwrap();
-        let ret = lchown(
-            a.as_ptr(), *user, *group
-        );
-        if ret == 0 {
-            if *verbose {
-                println!("{}: Successfully changed ownership.", path);
-            }
-        }
-        else {
-            eprintln!("{}: Failed to set ownership!", path);
-        }
+fn changeown(path:&str, user:&Option<u32>, group:&Option<u32>, verbose:&bool, link:&bool) {
+    let command = if *link {
+        os::unix::fs::chown(path, *user, *group)
     }
+    else {
+        os::unix::fs::lchown(path, *user, *group)
+    };
+    match command {
+        Err(e) => eprintln!("{path}: Failed to change ownership: {:?}!", e.kind()),
+        Ok(_) => {
+            if *verbose {
+                println!("{path}: Set successfully.")
+            }
+        },
+    };
 }
 
-fn browsedir(path:&Path, user:&u32, group:&u32, rec:&bool, verbose:&bool) {
+fn browsedir(path:&Path, user:&Option<u32>, group:&Option<u32>, rec:&bool, verbose:&bool, link:&bool) {
     // List where all found files will be stored
     let result = libdir::browse(path);
 
     // Add new elements to 'result'
     for r in &result {
-        changeown(r.to_str().unwrap(), user, group, verbose);
+        changeown(r.to_str().unwrap(), user, group, verbose, link);
         if rec & r.is_dir() {
-            changeown(r.to_str().unwrap(), user, group, verbose);
-            browsedir(r, user, group, rec, verbose)
+            changeown(r.to_str().unwrap(), user, group, verbose, link);
+            browsedir(r, user, group, rec, verbose, link)
         }
     }
 }

@@ -44,12 +44,12 @@
 
 - MD: Ability to show only selected information
 - MD: Has an option to enable/disable link resolving
+- OWN: Use recently added chown added to Rust's STDLIB
 - *: Added license to the source tree
 
 ### Waiting features:
 
 - L: Colorful output
-- OWN: Use recently added chown added to Rust's STDLIB
 - AD: Ability to disable creating parent directories if they do not exists
 - RUSH: Run files (scripts) passed as arguments from CLI
 - RUSH: Ability to view and modify variables
