@@ -65,8 +65,8 @@ fn main() {
         // Convert ID's requested by user in arguments, to numbers of type Some(u32)
         // If user wants to skip changing UID, use None()
         let user =
-            // If user set uid to "-", just use previous ownership ID
-            if uid == "-" {
+            // If user set uid to "n", just use previous ownership ID
+            if uid == "n" {
                 None
             }
             else {
@@ -81,7 +81,7 @@ fn main() {
                 }
             };
         let group =
-            if ids.len() == 1 || gid == "-" && ids.len() == 2  {
+            if ids.len() == 1 || gid == "n" && ids.len() == 2  {
                 None
             }
             else {

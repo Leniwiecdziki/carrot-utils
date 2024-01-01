@@ -142,7 +142,7 @@ pub fn perms(p:u32, normal_perms:bool) -> String {
     else {
         match p {
             0 => String::from("-"),
-            1 => String::from("s"),
+            1 => String::from("t"),
             2 => String::from("g"),
             4 => String::from("u"),
             _ => String::from("?"),

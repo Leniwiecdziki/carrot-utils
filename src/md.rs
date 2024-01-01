@@ -127,7 +127,7 @@ fn main() {
             let user = converted_perms_mode.chars().nth_back(2).unwrap();
             let group = converted_perms_mode.chars().nth_back(1).unwrap();
             let others = converted_perms_mode.chars().nth_back(0).unwrap();
-            let additional = converted_perms_mode.chars().nth_back(4).unwrap();
+            let additional = converted_perms_mode.chars().nth_back(3).unwrap();
             
             let (u,g,o,a) = if human {
                 (lib2human::perms(user.to_digit(10).unwrap(), true),

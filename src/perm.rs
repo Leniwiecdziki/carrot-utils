@@ -86,7 +86,7 @@ fn checkmode(input:&Vec<&str>, file:PathBuf) -> ModesTable {
         1 =>
             ModesTable {
                 user:
-                    if input[0] != "-" { lib2machine::perms(input[0], true) }
+                    if input[0] != "n" { lib2machine::perms(input[0], true) }
                     else { prev_perms.1 },
                 group: prev_perms.2,
                 other: prev_perms.3,
@@ -95,10 +95,10 @@ fn checkmode(input:&Vec<&str>, file:PathBuf) -> ModesTable {
         2 => 
             ModesTable {
                 user:
-                    if input[0] != "-" { lib2machine::perms(input[0], true) }
+                    if input[0] != "n" { lib2machine::perms(input[0], true) }
                     else { prev_perms.1 },
                 group:
-                    if input[1] != "-" { lib2machine::perms(input[1], true) }
+                    if input[1] != "n" { lib2machine::perms(input[1], true) }
                     else { prev_perms.2 },
                 other: prev_perms.3,
                 additional: prev_perms.0,
@@ -107,13 +107,13 @@ fn checkmode(input:&Vec<&str>, file:PathBuf) -> ModesTable {
         3 => 
             ModesTable {
                 user:
-                    if input[0] != "-" { lib2machine::perms(input[0], true) }
+                    if input[0] != "n" { lib2machine::perms(input[0], true) }
                     else { prev_perms.1 },
                 group:
-                    if input[1] != "-" { lib2machine::perms(input[1], true) }
+                    if input[1] != "n" { lib2machine::perms(input[1], true) }
                     else { prev_perms.2 },
                 other: 
-                    if input[2] != "-" { lib2machine::perms(input[2], true) }
+                    if input[2] != "n" { lib2machine::perms(input[2], true) }
                     else { prev_perms.3 },
                 additional: prev_perms.0,
             },
@@ -121,16 +121,16 @@ fn checkmode(input:&Vec<&str>, file:PathBuf) -> ModesTable {
         4 => 
             ModesTable {
                 user:
-                    if input[0] != "-" { lib2machine::perms(input[0], true) }
+                    if input[0] != "n" { lib2machine::perms(input[0], true) }
                     else { prev_perms.1 },
                 group:
-                    if input[1] != "-" { lib2machine::perms(input[1], true) }
+                    if input[1] != "n" { lib2machine::perms(input[1], true) }
                     else { prev_perms.2 },
                 other: 
-                    if input[2] != "-" { lib2machine::perms(input[2], true) }
+                    if input[2] != "n" { lib2machine::perms(input[2], true) }
                     else { prev_perms.3 },
                 additional: 
-                    if input[3] != "-" { lib2machine::perms(input[3], false) }
+                    if input[3] != "n" { lib2machine::perms(input[3], false) }
                     else { prev_perms.0 },
             },
 

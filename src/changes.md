@@ -52,19 +52,20 @@
 - L: Colorful output
 - L: When folder is being shown on the list, it's name will always end with "/"
 
+# Release 0.3.0:
+
 ### Waiting features:
 
-- RUSH: Run files (scripts) passed as arguments from CLI
-- RUSH: Ability to view and modify variables
-- RUSH: Restricted shell mode
-- RUSH: File mode
-- RUSH: Sleep/wait command
-- RUSH: History
-
-# Release 0.3.0:
+- PERM: Some ACL support
 
 ### Waiting features:
 
 - REX: Add a tool that executes commands as other users
 - GET: Add a tool that can retrieve information about system
 - SET: Settings!
+- RUSH: Run files (scripts) passed as arguments from CLI
+- RUSH: Ability to view and modify variables
+- RUSH: Restricted shell mode
+- RUSH: File mode
+- RUSH: Sleep/wait command
+- RUSH: History

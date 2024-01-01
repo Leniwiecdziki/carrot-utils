@@ -50,7 +50,7 @@ pub fn perms(p:&str, normal_perms:bool) -> u32 {
     else {
         match p {
             "n" => 0,
-            "s" => 1,
+            "t" => 1,
             "g" => 2,
             "u" => 4,
             _ => 8,
