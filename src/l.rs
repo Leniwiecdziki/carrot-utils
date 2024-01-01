@@ -1,6 +1,8 @@
 use std::path::Path;
 use std::path::PathBuf;
 use std::process;
+use std::fs;
+use std::os::unix::fs::FileTypeExt;
 mod libargs;
 mod libdir;
 
@@ -14,6 +16,7 @@ fn main() {
     }
     let mut hidden = false;
     let mut sort = true;
+    let mut color = false;
     let mut rec = false;
 
     let mut index = 0;
@@ -27,6 +30,7 @@ fn main() {
 
         if s != "h" && s != "hidden" 
         && s != "r" && s != "rec"
+        && s != "c" && s != "color"
         && s != "n" && s != "nosort" {
             eprintln!("Unknown switch: {s}");
             process::exit(1);
@@ -39,6 +43,9 @@ fn main() {
         }
         if s == "n" || s == "nosort" {
             sort = false;
+        }
+        if s == "c" || s == "color" {
+            color = true;
         }
         index += 1;
     }
@@ -62,7 +69,7 @@ fn main() {
         let original_request = &opts[index];
         let dir_to_list = &opts[index];
 
-        showdir(&PathBuf::from(original_request), &PathBuf::from(dir_to_list), &hidden, &rec, &sort);
+        showdir(&PathBuf::from(original_request), &PathBuf::from(dir_to_list), &hidden, &rec, &sort, &color);
         index+=1;
         if index < opts.len() {
             println!();
@@ -71,7 +78,7 @@ fn main() {
 
 }
 
-fn showdir(original_request:&Path, dir:&Path, hidden: &bool, rec:&bool, sort:&bool) {
+fn showdir(original_request:&Path, dir:&Path, hidden: &bool, rec:&bool, sort:&bool, color:&bool) {
     let result = libdir::browse(dir);
     let mut sorted_result = Vec::new();
     
@@ -79,7 +86,6 @@ fn showdir(original_request:&Path, dir:&Path, hidden: &bool, rec:&bool, sort:&bo
     let mut index = 0;
     while index < result.len() {
         let element = &result[index];
-        // Get it's name without any trailing directory
         let filename_without_og = element.strip_prefix(original_request).unwrap();
         // Get it's name without a directory name specified as a part of argument
         let filename_without_any_dir = element.file_name().unwrap().to_os_string().into_string().unwrap();
@@ -88,14 +94,14 @@ fn showdir(original_request:&Path, dir:&Path, hidden: &bool, rec:&bool, sort:&bo
         let is_hidden = filename_without_any_dir.starts_with('.');
         if !is_hidden || *hidden {
             if *sort {
-                sorted_result.push(filename_without_og);
+                sorted_result.push(element);
             }
             else {
-                println!("{}", filename_without_og.display());
+                colorprint(element, color, original_request);
             };
             // Descent into another directory if "rec" is enabled
             if element.is_dir() && *rec {
-                showdir(original_request, &original_request.join(filename_without_og), hidden, rec, sort);
+                showdir(original_request, &original_request.join(filename_without_og), hidden, rec, sort, color);
             };
         };
         index += 1;
@@ -104,7 +110,43 @@ fn showdir(original_request:&Path, dir:&Path, hidden: &bool, rec:&bool, sort:&bo
     if *sort {
         sorted_result.sort();
         for i in sorted_result  {
-            println!("{}", i.display());
+            colorprint(i, color, original_request)
+        };
+    };
+}
+
+fn colorprint(file:&Path, colorful:&bool, original_request:&Path) {
+    let filename_without_og = file.strip_prefix(original_request).unwrap();
+    if !colorful {
+        match fs::symlink_metadata(file) {
+            Err(e) => eprintln!("{}: Can't detect file type: {:?}!", file.display(), e.kind()),
+            Ok(md) => {
+                let add_slash_when_dir = if md.is_dir() {
+                    "/".to_string()
+                } else {
+                    String::new()
+                };
+                println!("{}{add_slash_when_dir}", filename_without_og.display());
+            },
+        };
+    }
+    else {
+        match fs::symlink_metadata(file) {
+            Err(e) => eprintln!("{}: Can't detect file type: {:?}!", file.display(), e.kind()),
+            Ok(md) => {
+                if md.is_file() {
+                    println!("\x1b[1;37m{}\x1b[0m", filename_without_og.display());
+                }
+                else if md.is_dir() {
+                    println!("\x1b[1;32m{}/\x1b[0m", filename_without_og.display());
+                }
+                else if md.is_symlink() {
+                    println!("\x1b[1;34m{}\x1b[0m", filename_without_og.display());
+                }
+                else {
+                    println!("\x1b[1;33m{}\x1b[0m", filename_without_og.display());
+                };
+            },
         };
     };
 }

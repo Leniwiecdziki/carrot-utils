@@ -48,9 +48,12 @@
 - OWN: Use recently added chown added to Rust's STDLIB
 - *: Added license to the source tree
 
+### Added on 01.01.2024
+- L: Colorful output
+- L: When folder is being shown on the list, it's name will always end with "/"
+
 ### Waiting features:
 
-- L: Colorful output
 - RUSH: Run files (scripts) passed as arguments from CLI
 - RUSH: Ability to view and modify variables
 - RUSH: Restricted shell mode
