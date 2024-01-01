@@ -51,21 +51,28 @@
 ### Added on 01.01.2024
 - L: Colorful output
 - L: When folder is being shown on the list, it's name will always end with "/"
+- P: Removed "start", "end" and "rev" switches. There will be added a tool to change command output
+
+# Release 0.2.1
+
+### Waiting features:
+
+- S: Simple pager (NEW!)
+- TR: Transform command output (NEW!)
+- REX: Tool that executes commands as other users (NEW!)
+- PERM: ACLs support
 
 # Release 0.3.0:
 
 ### Waiting features:
 
-- PERM: Some ACL support
-
-### Waiting features:
-
-- REX: Add a tool that executes commands as other users
 - GET: Add a tool that can retrieve information about system
 - SET: Settings!
-- RUSH: Run files (scripts) passed as arguments from CLI
 - RUSH: Ability to view and modify variables
 - RUSH: Restricted shell mode
-- RUSH: File mode
+- RUSH: Run files (scripts) passed as arguments from CLI
 - RUSH: Sleep/wait command
 - RUSH: History
+- RUSH: Up and down keys for history browsing
+- RUSH: Pipes
+- RUSH: Ability to redirect command's output to a file
