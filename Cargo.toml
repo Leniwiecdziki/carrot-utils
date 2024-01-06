@@ -15,6 +15,13 @@ libc = "*"
 rand = "0.8.4"
 crossterm = "*"
 
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+directory = "vendor"
+
+
 [[bin]]
 name = "ad"
 path = "src/ad.rs"
@@ -82,3 +89,27 @@ path = "src/seek.rs"
 [[bin]]
 name = "sl"
 path = "src/sl.rs"
+
+[[sublib]]
+name = "lib2human"
+path = "src/lib2human.rs"
+
+[[sublib]]
+name = "lib2machine"
+path = "src/lib2machine.rs"
+
+[[sublib]]
+name = "libargs"
+path = "src/libargs.rs"
+
+[[sublib]]
+name = "libdir"
+path = "src/libdir.rs"
+
+[[sublib]]
+name = "libfileinfo"
+path = "src/libfileinfo.rs"
+
+[[sublib]]
+name = "libinput"
+path = "src/libinput.rs"

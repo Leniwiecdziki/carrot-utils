@@ -2,7 +2,6 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::process;
 use std::fs;
-use std::os::unix::fs::FileTypeExt;
 mod libargs;
 mod libdir;
 
