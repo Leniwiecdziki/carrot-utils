@@ -55,6 +55,23 @@
 
 # Release 0.2.1
 
+### Added on 06.01.2024
+- C: Fixed a bug that caused moving files to directories impossible if file under destdir doesn't exist
+- M: Same patch as in "C". I should probably connect those utilities into one thing...
+
+### Waiting features:
+I like the way how new M and C works. They both try to check for any error BEFORE actually performing any actions such as bulk copying.
+I want to add this kind of mechanic to another programs such as "ad" or "af".
+
+Why does it matter?
+It would be nice to see if creating all requested elements succeeds or not. Imagine a situation when you want to add a lot of new directories
+or files in a script. It would be shame to see, that few of them wouldn't be created, because they already exist or you don't have sufficient
+permissions. Instead - we need to scan all possible errors for all requested elements and THEN do what user said.
+
+Also, don't forget to add an option to skip "AlreadyExists!" error.
+
+# Release 0.2.2
+
 ### Waiting features:
 
 - S: Simple pager (NEW!)

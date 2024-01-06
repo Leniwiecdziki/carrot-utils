@@ -143,10 +143,9 @@ fn main() {
                 // Check if both files are equal
                 compare_files(source, &dest);
             }
-
             // File to dir
             if !source_is_dir && dest_type == "dir" {
-                dest = dest.join(source);
+                dest = dest.join(PathBuf::from(source).file_name().expect("Failed to get file name from source's path!"));
                 compare_files(source, &dest);
             }
             // Dir to dir
@@ -171,11 +170,10 @@ fn main() {
             if !source_is_dir && dest_type == "file" {
                 rename(&PathBuf::from(source), &dest, &verbose, &overwrite, &ask)
             }
-
             // File to dir
             if !source_is_dir && dest_type == "dir" {
-                dest = dest.join(source);
-                rename(&PathBuf::from(source), &dest, &verbose, &overwrite, &ask)
+                dest = dest.join(PathBuf::from(source).file_name().unwrap());
+                rename(&PathBuf::from(source), &dest, &verbose, &overwrite, &ask);
             }
             // Dir to dir
             if source_is_dir && dest_type == "dir" {
@@ -235,23 +233,30 @@ fn compare_files(source:&String, dest:&PathBuf) {
             process::exit(1);
         },
     };
-    // Check if file is opened properly
-    match File::open(dest) {
-        // Save it's contents to buffer2
-        Ok(mut opened_file) => {
-            opened_file.read_to_end(&mut buffer2).unwrap();
-        },
-        // Lack of source file is okay. If file isn't found - just save "1" to the buffer and ingore the error
-        Err(e) => {
-            if e.kind() == ErrorKind::NotFound {
-            buffer2 = [1].to_vec()
-            }
-        // If there is different kind of error - terminate
-            else {
-                eprintln!("{}: Failed to read a file because of an error: {:?}!", &dest.display(), e.kind());
-                process::exit(1);
-            };
-        },
+    // Check if file is not a directory
+    if !dest.is_dir() {
+        // Check if file is opened properly
+        match File::open(dest) {
+            // Save it's contents to buffer2
+            Ok(mut opened_file) => {
+                opened_file.read_to_end(&mut buffer2).unwrap();
+            },
+            // Lack of source file is okay. If file isn't found - just save "1" to the buffer and ingore the error
+            Err(e) => {
+                if e.kind() == ErrorKind::NotFound {
+                    // Just quit from function
+                    return;
+                }
+            // If there is different kind of error - terminate
+                else {
+                    eprintln!("{}: Failed to read a file because of an error: {:?}!", &dest.display(), e.kind());
+                    process::exit(1);
+                };
+            },
+        };
+    }
+    else {
+        return;
     };
 
     if buffer1 == buffer2 {
