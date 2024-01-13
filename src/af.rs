@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::Path;
+use std::io::ErrorKind;
 use std::process;
 mod libargs;
 
@@ -13,13 +13,18 @@ fn main() {
         } 
     }
     let mut verbose = false;
+    let mut ignore = false;
     for s in swcs {
-        if s != "v" && s != "verbose" {
+        if s != "v" && s != "verbose"
+        && s != "i" && s != "ignore" {
             eprintln!("Unknown switch: {s}");
             process::exit(1);
         }
-        else {
+        if s == "v" || s == "verbose" {
             verbose = true;
+        }
+        if s == "i" || s == "ignore" {
+            ignore = true;
         }
     }
 
@@ -30,15 +35,17 @@ fn main() {
 
     let mut index = 0;
     while index < opts.len() {
-        if Path::new(&opts[index]).exists() {
-            eprintln!("{}: Requested resource already exists!", opts[index]);
-            index += 1;
-            continue;
-        }
-
         match fs::File::create(&opts[index]) {
-            Err(e) => eprintln!("{}: File wasn't added because of an error: {:?}!", opts[index], e.kind()),
-            _ => if verbose {println!("{}: Added successfully.", opts[index]);},
+            Err(e) => {
+                if !ignore && e.kind() != ErrorKind::AlreadyExists {
+                    eprintln!("{}: Directory wasn't added because of an error: {:?}!", opts[index], e.kind());
+                };
+            },
+            _ => {
+                if verbose {
+                    println!("{}: Added successfully.", opts[index]);
+                }
+            },
         }
         index += 1;
     }

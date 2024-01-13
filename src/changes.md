@@ -2,14 +2,16 @@
 # Release 0.1.0
 
 ### Added on 22.12.2023:
+
 - C: Fixed an issue, when user tried to copy a file to directory with a new name.
 - P: Program was rewritten
 - PERM: Fixed issues with verbose mode still being enabled while it shouldn't
 - RUSH: Added an extremely early shell for CarrotOS
 
 ### Added on 23.12.2023:
+
 - C: Fixed directory to directory copying
-- RUSH: Can understand some built-in commands and execute commands 
+- RUSH: Can understand some built-in commands and execute commands
 
 # Release 0.1.1
 
@@ -19,7 +21,7 @@
 - JUNK: Ability to create files with zeroes or random bytes of desired size
 - JUNK: Verbose mode
 
-# Release 0.2.0 (Planned)
+# Release 0.2.0
 
 ### Added on 28.12.2023
 
@@ -49,6 +51,7 @@
 - *: Added license to the source tree
 
 ### Added on 01.01.2024
+
 - L: Colorful output
 - L: When folder is being shown on the list, it's name will always end with "/"
 - P: Removed "start", "end" and "rev" switches. There will be added a tool to change command output
@@ -56,19 +59,13 @@
 # Release 0.2.1
 
 ### Added on 06.01.2024
+
 - C: Fixed a bug that caused moving files to directories impossible if file under destdir doesn't exist
 - M: Same patch as in "C". I should probably connect those utilities into one thing...
 
-### Waiting features:
-I like the way how new M and C works. They both try to check for any error BEFORE actually performing any actions such as bulk copying.
-I want to add this kind of mechanic to another programs such as "ad" or "af".
+### Added on 13.01.2024
 
-Why does it matter?
-It would be nice to see if creating all requested elements succeeds or not. Imagine a situation when you want to add a lot of new directories
-or files in a script. It would be shame to see, that few of them wouldn't be created, because they already exist or you don't have sufficient
-permissions. Instead - we need to scan all possible errors for all requested elements and THEN do what user said.
-
-Also, don't forget to add an option to skip "AlreadyExists!" error.
+- AD, AF: Added "ignore" switches. They allow user to ignore "AlreadyExists" error
 
 # Release 0.2.2
 

@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::Path;
+use std::io::ErrorKind;
 use std::process;
 mod libargs;
 
@@ -12,9 +12,11 @@ fn main() {
         } 
     }
     let mut verbose = false;
+    let mut ignore = false;
     let mut parents = false;
     for s in swcs {
         if s != "v" && s != "verbose"
+        && s != "i" && s != "ignore"
         && s != "p" && s != "parents" {
             eprintln!("Unknown switch: {s}");
             process::exit(1);
@@ -25,6 +27,9 @@ fn main() {
         if s == "p" || s == "parents" {
             parents = true;
         }
+        if s == "i" || s == "ignore" {
+            ignore = true;
+        }
     }
 
     if opts.is_empty() {
@@ -34,13 +39,6 @@ fn main() {
 
     let mut index = 0;
     while index < opts.len() {
-
-        if Path::new(&opts[index]).exists() {
-            eprintln!("{}: Requested resource already exists!", opts[index]);
-            index += 1;
-            continue;
-        }
-
         let command = if parents {
             fs::create_dir_all(&opts[index])
         }
@@ -48,8 +46,16 @@ fn main() {
             fs::create_dir(&opts[index])
         };
         match command {
-            Err(e) => eprintln!("{}: Directory wasn't added because of an error: {:?}!", opts[index], e.kind()),
-            _ => if verbose {println!("{}: Added successfully.", opts[index]);},
+            Err(e) => {
+                if !ignore && e.kind() != ErrorKind::AlreadyExists {
+                    eprintln!("{}: Directory wasn't added because of an error: {:?}!", opts[index], e.kind());
+                };
+            },
+            _ => {
+                if verbose {
+                    println!("{}: Added successfully.", opts[index]);
+                }
+            },
         }
         index += 1;
     }
