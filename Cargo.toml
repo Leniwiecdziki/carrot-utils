@@ -83,6 +83,10 @@ name = "rush"
 path = "src/rush.rs"
 
 [[bin]]
+name = "s"
+path = "src/s.rs"
+
+[[bin]]
 name = "seek"
 path = "src/seek.rs"
 
