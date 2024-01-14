@@ -61,26 +61,31 @@ fn main() {
                 let mut lines = HashMap::new();
                 let mut idx = 0;
                 for line in f.lines() {
-                    let terminal_width = terminal::size().unwrap().0 as usize;
-                    // Split line when it is longer than our terminal
-                    let how_many_iterations = line.len() / terminal_width;
+                    let terminal_width = terminal::size().unwrap().0 as usize ;
+                    // Make line shorter when it is longer than our terminal
                     if line.len() > terminal_width {
-                        // How many times do we need to split it?
-                        let mut index = 1;
-                        while index < how_many_iterations+1 {
-                            let splited_line = line.split_at(terminal_width*index);
-                            lines.insert(idx, splited_line.0);
+                        // How many times do we need to cut it?
+                        let how_many_iterations = line.len() / terminal_width;
+
+                        let mut split_count = 1;
+                        while split_count != how_many_iterations+1 {
+                            // If iteration was already ran, remove unneeded characters from line
+                            let previous_split_count = split_count-1;
+                            let n = previous_split_count * terminal_width;
+                            let shorter_line = line[n..].split_at(terminal_width);
+                            lines.insert(idx, shorter_line.0);
                             idx += 1;
-                            index += 1;
-                            lines.insert(idx, splited_line.1);
-                            idx += 1;
-                            index +=1;
-                        }
+                            if split_count == how_many_iterations {
+                                lines.insert(idx, shorter_line.1);
+                                idx += 1;
+                            };
+                            split_count +=1;
+                        };
                     } else {
                         lines.insert(idx, line);
-                    }
-                    idx += 1;
-                }
+                        idx += 1;
+                    };
+                };
                 very_funny(lines);
             },
         };
@@ -100,14 +105,13 @@ fn very_funny(content:HashMap<usize, &str>) {
     // Show lines from START (which is 1 by default or something else when user wants to)
     // to end (which is always a terminal height)
     let mut index = start;
-    while index < end {
+    while index < end-1 {
         print_line(content.get_key_value(&index));
         if index != end {
             println!();
         };
         index += 1;
     }
-    let end = terminal_height;
     print_line(content.get_key_value(&index));
     loop {
         let event = event::read().expect("Keyboard event cannot be read!");

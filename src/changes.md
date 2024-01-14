@@ -69,11 +69,14 @@
 
 # Release 0.2.2
 
+### Added on 14.01.2024
+
+- S: Simple pager (NEW PROGRAM!)
+
 ### Waiting features:
 
-- S: Simple pager (NEW!)
-- TR: Transform command output (NEW!)
-- REX: Tool that executes commands as other users (NEW!)
+- TR: Transform command output (NEW PROGRAM!)
+- REX: Tool that executes commands as other users (NEW PROGRAM!)
 - PERM: ACLs support
 
 # Release 0.3.0:
