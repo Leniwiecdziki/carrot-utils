@@ -21,7 +21,6 @@ replace-with = "vendored-sources"
 [source.vendored-sources]
 directory = "vendor"
 
-
 [[bin]]
 name = "ad"
 path = "src/ad.rs"
@@ -33,6 +32,10 @@ path = "src/af.rs"
 [[bin]]
 name = "c"
 path = "src/c.rs"
+
+[[bin]]
+name = "count"
+path = "src/count.rs"
 
 [[bin]]
 name = "hello"
@@ -67,6 +70,10 @@ name = "p"
 path = "src/p.rs"
 
 [[bin]]
+name = "page"
+path = "src/page.rs"
+
+[[bin]]
 name = "perm"
 path = "src/perm.rs"
 
@@ -83,16 +90,16 @@ name = "rush"
 path = "src/rush.rs"
 
 [[bin]]
-name = "s"
-path = "src/s.rs"
-
-[[bin]]
 name = "seek"
 path = "src/seek.rs"
 
 [[bin]]
 name = "sl"
 path = "src/sl.rs"
+
+[[bin]]
+name = "tr"
+path = "src/tr.rs"
 
 [[sublib]]
 name = "lib2human"

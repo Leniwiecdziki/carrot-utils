@@ -73,11 +73,25 @@
 
 - S: Simple pager (NEW PROGRAM!)
 
+### Added on 15.01.2024
+
+- S: Changed it's name to 'page'
+
+### Added on 18.01.2024
+
+- P: Removed support for counting lines - Use "count -p" command to do it
+- PAGE: Add support for piped content
+- COUNT: Count number of words or lines from input (NEW PROGRAM!)
+- TR: Transform command output (NEW PROGRAM!)
+
 ### Waiting features:
 
-- TR: Transform command output (NEW PROGRAM!)
+- PAGE: Move code responsible for shrinking wide lines to a function so the code would be more readable
+	- Some example things, that this program can do:
+	- Shrink large lines
 - REX: Tool that executes commands as other users (NEW PROGRAM!)
 - PERM: ACLs support
+- L: Column output
 
 # Release 0.3.0:
 

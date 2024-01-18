@@ -11,21 +11,9 @@ fn main() {
         process::exit(1);
     }
 
-    let mut showcount = false;
-    let mut index = 0;
-    while index < swcs.len() {
-        let s = &swcs[index];
-        let v = &vals[index];
-
-        if s != "c" && s != "count" {
-            eprintln!("Unknown switch: {s}");
-            process::exit(1);
-        }
-        else {
-            showcount = true;
-            if !v.is_empty() { eprintln!("Unsupported value for a switch: {s}={v}"); process::exit(1); }
-        }
-        index += 1; 
+    if !swcs.is_empty() || !vals.is_empty() {
+        eprintln!("This program does not need any switches nor values!");
+        process::exit(1);
     }
 
     let mut index = 0;
@@ -36,17 +24,8 @@ fn main() {
                 index += 1;
             },
             Ok(f) => { 
-                // Create a vector that stores entire file in it
-                let mut counter = 1;
                 for line in f.lines() {
-                    let show_counter_or_not = if showcount {
-                        format!("{counter}: ")
-                    }
-                    else {
-                        String::new()
-                    };
-                    println!("{show_counter_or_not}{line}");
-                    counter += 1;
+                    println!("{line}");
                 }
             },
         };

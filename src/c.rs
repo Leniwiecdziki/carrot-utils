@@ -166,6 +166,10 @@ fn main() {
                 Ok(md) => {md.is_dir()},
             };
 
+            if verbose {
+                println!("Working on element: {}", &source)
+            };
+
             // File to file
             if !source_is_dir && dest_type == "file" {
                 copy(&PathBuf::from(source), &dest, &verbose, &overwrite, &ask)
@@ -298,7 +302,7 @@ fn copy(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&boo
     if overwrite || !dest.exists() {
         match fs::copy(source, dest) {
             Err(e) => eprintln!("{}: Cannot copy resource because of an error: {:?}", &source.display(), e.kind()),
-            Ok(_) => if *verbose {println!("{}: Copied successfully", &source.display())},
+            Ok(_) => if *verbose {println!("{}: Copied successfully", &dest.display())},
         };
     }
     else {

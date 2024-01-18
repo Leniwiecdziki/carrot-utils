@@ -166,6 +166,10 @@ fn main() {
                 Ok(md) => {md.is_dir()},
             };
 
+            if verbose {
+                println!("Working on element: {}", &source)
+            };
+
             // File to file
             if !source_is_dir && dest_type == "file" {
                 rename(&PathBuf::from(source), &dest, &verbose, &overwrite, &ask)
