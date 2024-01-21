@@ -1,6 +1,6 @@
 [package]
-name = "carrot-utils"
-version = "0.2.2"
+name = "carrot_utils"
+version = "0.2.3"
 edition = "2021"
 
 [build]
@@ -10,16 +10,19 @@ rustflags=["-C prefer-dynamic"]
 strip = true
 debug = false
 
-[dependencies]
-libc = "*"
-rand = "0.8.4"
-crossterm = "*"
-
 [source.crates-io]
 replace-with = "vendored-sources"
 
 [source.vendored-sources]
 directory = "vendor"
+
+[dependencies]
+libc = "*"
+rand = "0.8.4"
+crossterm = "*"
+
+[dependencies.carrot_libs]
+path = "../carrot-libs"
 
 [[bin]]
 name = "ad"
@@ -73,6 +76,10 @@ path = "src/p.rs"
 name = "page"
 path = "src/page.rs"
 
+[[subbin]]
+name = "page"
+path = "src/page.rs"
+
 [[bin]]
 name = "perm"
 path = "src/perm.rs"
@@ -100,27 +107,3 @@ path = "src/sl.rs"
 [[bin]]
 name = "tr"
 path = "src/tr.rs"
-
-[[sublib]]
-name = "lib2human"
-path = "src/lib2human.rs"
-
-[[sublib]]
-name = "lib2machine"
-path = "src/lib2machine.rs"
-
-[[sublib]]
-name = "libargs"
-path = "src/libargs.rs"
-
-[[sublib]]
-name = "libdir"
-path = "src/libdir.rs"
-
-[[sublib]]
-name = "libfileinfo"
-path = "src/libfileinfo.rs"
-
-[[sublib]]
-name = "libinput"
-path = "src/libinput.rs"

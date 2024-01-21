@@ -1,8 +1,9 @@
-mod libargs;
-mod libdir;
-mod libfileinfo;
-mod lib2human;
-mod lib2machine;
+use carrot_libs::args;
+use carrot_libs::input;
+use carrot_libs::dir;
+use carrot_libs::fileinfo;
+use carrot_libs::kinder;
+use carrot_libs::unkinder;
 use std::process;
 use std::path::Path;
 use std::path::PathBuf;
@@ -13,8 +14,8 @@ use std::collections::HashMap;
 // FIXME: NOT Logic
 
 fn main() {
-    let opts = libargs::opts();
-    let (swcs, vals) = libargs::swcs();
+    let opts = args::opts();
+    let (swcs, vals) = args::swcs();
     if opts.is_empty() {
         eprintln!("This program requires at least one directory name!");
         process::exit(1);
@@ -80,7 +81,7 @@ fn main() {
             process::exit(1);
         }
 
-        for file in libdir::browse(&PathBuf::from(&opts[opts_index])) {
+        for file in dir::browse(&PathBuf::from(&opts[opts_index])) {
             entries.push(file);
         }
 
@@ -166,33 +167,33 @@ fn correct(s:&str, v:&str, r:&Path, lvl:i32) -> bool {
     s=="not" || s=="reqall" ||
     s=="name" && v == justname ||
     s=="iname" && v.to_lowercase() == justname.to_lowercase() ||
-    s=="ftype" && v.to_lowercase() == libfileinfo::ftype(r).unwrap().to_lowercase() ||
-    s=="size" && v.to_lowercase().ends_with('+') && lib2machine::size(v) < libfileinfo::size(r).unwrap() ||
-    s=="size" && v.to_lowercase().ends_with('-') && lib2machine::size(v) > libfileinfo::size(r).unwrap() ||
-    s=="size" && v.to_lowercase() == lib2human::size(libfileinfo::size(r).unwrap()).to_lowercase() ||
-    s=="read" && lib2human::perms(libfileinfo::perms(r).unwrap().1, true).to_lowercase().contains('r') ||
-    s=="read" && lib2human::perms(libfileinfo::perms(r).unwrap().2, true).to_lowercase().contains('r') ||
-    s=="read" && lib2human::perms(libfileinfo::perms(r).unwrap().3, true).to_lowercase().contains('r') ||
-    s=="write" && lib2human::perms(libfileinfo::perms(r).unwrap().1, true).to_lowercase().contains('w') ||
-    s=="write" && lib2human::perms(libfileinfo::perms(r).unwrap().2, true).to_lowercase().contains('w') ||
-    s=="write" && lib2human::perms(libfileinfo::perms(r).unwrap().3, true).to_lowercase().contains('w') ||
-    s=="exec" && lib2human::perms(libfileinfo::perms(r).unwrap().1, true).to_lowercase().contains('x') ||
-    s=="exec" && lib2human::perms(libfileinfo::perms(r).unwrap().2, true).to_lowercase().contains('x') ||
-    s=="exec" && lib2human::perms(libfileinfo::perms(r).unwrap().3, true).to_lowercase().contains('x') ||
-    s=="noread" && !lib2human::perms(libfileinfo::perms(r).unwrap().1, true).to_lowercase().contains('r') ||
-    s=="noread" && !lib2human::perms(libfileinfo::perms(r).unwrap().2, true).to_lowercase().contains('r') ||
-    s=="noread" && !lib2human::perms(libfileinfo::perms(r).unwrap().3, true).to_lowercase().contains('r') ||
-    s=="nowrite" && !lib2human::perms(libfileinfo::perms(r).unwrap().1, true).to_lowercase().contains('w') ||
-    s=="nowrite" && !lib2human::perms(libfileinfo::perms(r).unwrap().2, true).to_lowercase().contains('w') ||
-    s=="nowrite" && !lib2human::perms(libfileinfo::perms(r).unwrap().3, true).to_lowercase().contains('w') ||
-    s=="noexec" && !lib2human::perms(libfileinfo::perms(r).unwrap().1, true).to_lowercase().contains('x') ||
-    s=="noexec" && !lib2human::perms(libfileinfo::perms(r).unwrap().2, true).to_lowercase().contains('x') ||
-    s=="noexec" && !lib2human::perms(libfileinfo::perms(r).unwrap().3, true).to_lowercase().contains('x') ||
-    s=="uid" && *v == libfileinfo::uid(r).unwrap().to_string() ||
-    s=="gid" && *v == libfileinfo::gid(r).unwrap().to_string() ||
-    s=="links" && v.ends_with('+') && libfileinfo::hlinks(r).unwrap() > v.split('+').collect::<Vec<&str>>()[0].parse::<u64>().unwrap() ||
-    s=="links" && v.ends_with('-') && libfileinfo::hlinks(r).unwrap() < v.split('-').collect::<Vec<&str>>()[0].parse::<u64>().unwrap() ||
-    s=="links" && *v == libfileinfo::hlinks(r).unwrap().to_string() ||
+    s=="ftype" && v.to_lowercase() == fileinfo::ftype(r).unwrap().to_lowercase() ||
+    s=="size" && v.to_lowercase().ends_with('+') && unkinder::size(v) < fileinfo::size(r).unwrap() ||
+    s=="size" && v.to_lowercase().ends_with('-') && unkinder::size(v) > fileinfo::size(r).unwrap() ||
+    s=="size" && v.to_lowercase() == kinder::size(fileinfo::size(r).unwrap()).to_lowercase() ||
+    s=="read" && kinder::perms(fileinfo::perms(r).unwrap().1, true).to_lowercase().contains('r') ||
+    s=="read" && kinder::perms(fileinfo::perms(r).unwrap().2, true).to_lowercase().contains('r') ||
+    s=="read" && kinder::perms(fileinfo::perms(r).unwrap().3, true).to_lowercase().contains('r') ||
+    s=="write" && kinder::perms(fileinfo::perms(r).unwrap().1, true).to_lowercase().contains('w') ||
+    s=="write" && kinder::perms(fileinfo::perms(r).unwrap().2, true).to_lowercase().contains('w') ||
+    s=="write" && kinder::perms(fileinfo::perms(r).unwrap().3, true).to_lowercase().contains('w') ||
+    s=="exec" && kinder::perms(fileinfo::perms(r).unwrap().1, true).to_lowercase().contains('x') ||
+    s=="exec" && kinder::perms(fileinfo::perms(r).unwrap().2, true).to_lowercase().contains('x') ||
+    s=="exec" && kinder::perms(fileinfo::perms(r).unwrap().3, true).to_lowercase().contains('x') ||
+    s=="noread" && !kinder::perms(fileinfo::perms(r).unwrap().1, true).to_lowercase().contains('r') ||
+    s=="noread" && !kinder::perms(fileinfo::perms(r).unwrap().2, true).to_lowercase().contains('r') ||
+    s=="noread" && !kinder::perms(fileinfo::perms(r).unwrap().3, true).to_lowercase().contains('r') ||
+    s=="nowrite" && !kinder::perms(fileinfo::perms(r).unwrap().1, true).to_lowercase().contains('w') ||
+    s=="nowrite" && !kinder::perms(fileinfo::perms(r).unwrap().2, true).to_lowercase().contains('w') ||
+    s=="nowrite" && !kinder::perms(fileinfo::perms(r).unwrap().3, true).to_lowercase().contains('w') ||
+    s=="noexec" && !kinder::perms(fileinfo::perms(r).unwrap().1, true).to_lowercase().contains('x') ||
+    s=="noexec" && !kinder::perms(fileinfo::perms(r).unwrap().2, true).to_lowercase().contains('x') ||
+    s=="noexec" && !kinder::perms(fileinfo::perms(r).unwrap().3, true).to_lowercase().contains('x') ||
+    s=="uid" && *v == fileinfo::uid(r).unwrap().to_string() ||
+    s=="gid" && *v == fileinfo::gid(r).unwrap().to_string() ||
+    s=="links" && v.ends_with('+') && fileinfo::hlinks(r).unwrap() > v.split('+').collect::<Vec<&str>>()[0].parse::<u64>().unwrap() ||
+    s=="links" && v.ends_with('-') && fileinfo::hlinks(r).unwrap() < v.split('-').collect::<Vec<&str>>()[0].parse::<u64>().unwrap() ||
+    s=="links" && *v == fileinfo::hlinks(r).unwrap().to_string() ||
     s=="lvl" && v.ends_with('+') && lvl > v.split('+').collect::<Vec<&str>>()[0].parse::<i32>().unwrap() ||
     s=="lvl" && v.ends_with('-') && lvl < v.split('-').collect::<Vec<&str>>()[0].parse::<i32>().unwrap() ||
     s=="lvl" && lvl == v.parse::<i32>().unwrap()

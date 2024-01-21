@@ -1,16 +1,16 @@
-mod libargs;
-mod libdir;
-mod libinput;
 use std::io::ErrorKind;
 use std::process;
 use std::fs;
 use std::path::PathBuf;
 use std::io::Read;
 use std::fs::File;
+use carrot_libs::args;
+use carrot_libs::dir;
+use carrot_libs::input;
 
 fn main() {
-    let opts = libargs::opts();
-    let (swcs, vals) = libargs::swcs();
+    let opts = args::opts();
+    let (swcs, vals) = args::swcs();
     // Is user moving many files?
     let manysrcs = match opts.len() {
         2 => false,
@@ -276,7 +276,7 @@ fn browsedir(src:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&b
         process::exit(1);
     };
     // Contents of a directory that needs to be moved
-    let srclist = libdir::browse(&PathBuf::from(src));
+    let srclist = dir::browse(&PathBuf::from(src));
 
     for element in srclist {
         let stripped_src = element.strip_prefix(src).expect("Moving failed when program tried to strip destination prefix!");
@@ -311,7 +311,7 @@ fn rename(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&b
 
 fn question(opt: &PathBuf) -> bool {
     let mut toclear:bool = false;
-    let input = libinput::get(format!("{}: Do you really want to delete this? [y/n]: ", opt.display()));
+    let input = input::get(format!("{}: Do you really want to delete this? [y/n]: ", opt.display()));
     if input.len() != 1 {
         println!("Sorry! I don't undestand your input.");
         question(opt);

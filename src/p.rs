@@ -1,10 +1,10 @@
 use std::fs;
 use std::process;
-mod libargs;
+use carrot_libs::args;
 
 fn main() {
-    let opts = libargs::opts();
-    let (swcs, vals) = libargs::swcs();
+    let opts = args::opts();
+    let (swcs, vals) = args::swcs();
 
     if opts.is_empty() {
         eprintln!("This program requires at least one file name!");

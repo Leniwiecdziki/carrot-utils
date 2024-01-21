@@ -1,10 +1,11 @@
+#![allow(dead_code)]
 use std::fs;
-use std::collections::HashMap;
 use std::io::{self, IsTerminal, Read};
 use crossterm::{self, execute, terminal, cursor, event};
 use crossterm::event::{KeyCode, KeyModifiers, KeyEvent, Event::Key};
 use std::process;
-mod libargs;
+use std::collections::HashMap;
+use carrot_libs::args;
 
 fn prepare_console() {
     // Enter an alternate screen
@@ -24,8 +25,8 @@ fn unprepare_console() {
 }
 
 fn main() {
-    let opts = libargs::opts();
-    let (swcs, vals) = libargs::swcs();
+    let opts = args::opts();
+    let (swcs, vals) = args::swcs();
     if !swcs.is_empty() || !vals.is_empty() {
         eprintln!("This program does not need any switches nor values!");
         process::exit(1);
@@ -76,11 +77,11 @@ fn main() {
             }
             // If line width is okay, just add it to "lines"
             else {
-                lines.insert(idx, &line);
+                lines.insert(idx, line);
                 idx += 1;
             };
         };
-        very_funny(lines.clone());
+        page(lines.clone());
     };
 
     if opts.is_empty() {
@@ -121,14 +122,14 @@ fn main() {
                         idx += 1;
                     };
                 }
-                very_funny(lines);
+                page(lines);
             },
         };
         index += 1;
     }
 }
 
-fn very_funny(content:HashMap<usize, &str>) {
+pub fn page(content:HashMap<usize, &str>) {
     let terminal_height = terminal::size().expect("Failed to check terminal height!").1.into();
     let lines_count = content.len();
 
@@ -159,7 +160,7 @@ fn very_funny(content:HashMap<usize, &str>) {
             // Scroll one line down
             Key(KeyEvent {code: KeyCode::Down, ..}) |
             Key(KeyEvent {code: KeyCode::PageDown, ..}) => {
-                if index < lines_count-1+end-1 {
+                if index < lines_count-1 {
                     execute!(io::stdout(), terminal::ScrollUp(1)).unwrap();
                     execute!(io::stdout(), cursor::MoveToRow(end.try_into().unwrap())).unwrap();
                     start += 1;

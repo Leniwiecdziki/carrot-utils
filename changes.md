@@ -84,6 +84,12 @@
 - COUNT: Count number of words or lines from input (NEW PROGRAM!)
 - TR: Transform command output (NEW PROGRAM!)
 
+# Release 0.2.3:
+
+### Added on 21.01.2024:
+
+ - *: Migrate libraries to another project called "carrot-libs"
+
 ### Waiting features:
 
 - PAGE: Move code responsible for shrinking wide lines to a function so the code would be more readable

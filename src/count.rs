@@ -1,12 +1,12 @@
 use std::fs;
 use std::io::{self, IsTerminal, Read};
 use std::process;
-mod libargs;
+use carrot_libs::args;
 
 
 fn main() {
-    let opts = libargs::opts();
-    let (swcs, vals) = libargs::swcs();
+    let opts = args::opts();
+    let (swcs, vals) = args::swcs();
     
     let mut print = false;
     let mut line_counter = false;
@@ -19,19 +19,19 @@ fn main() {
     }
 
     for s in swcs {
-        if s != "p" && s != "p"
-        && s != "l" && s != "line"
-        && s != "c" && s != "char" {
+        if s != "p" && s != "print"
+        && s != "l" && s != "lines"
+        && s != "c" && s != "chars" {
             eprintln!("Unknown switch: {s}");
             process::exit(1);
         }
         if s=="p" || s=="print" {
             print = true;
         }
-        if s=="l" || s=="line" {
+        if s=="l" || s=="lines" {
             line_counter = true;
         }
-        if s=="c" || s=="char" {
+        if s=="c" || s=="chars" {
             char_counter = true;
         }
     }

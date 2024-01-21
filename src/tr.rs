@@ -2,7 +2,7 @@ use std::fs;
 use std::collections::HashMap;
 use std::io::{self, IsTerminal, Read};
 use std::process;
-mod libargs;
+use carrot_libs::args;
 
 
 // Make a list of commands that share common purpose
@@ -16,8 +16,8 @@ const READ_PER_CHAR:[&str;6] =
     ["reverse-char", "top-char", "bottom-char", "R", "T", "B"];
 
 fn main() {
-    let opts = libargs::opts();
-    let (swcs, vals) = libargs::swcs();
+    let opts = args::opts();
+    let (swcs, vals) = args::swcs();
     
     let mut line_number = false;
     let mut index = 0;
@@ -118,7 +118,7 @@ fn index_chars(text:&String) -> HashMap<usize, String> {
 
 fn chtext(lines:HashMap<usize, String>, chars:HashMap<usize, String>, line_number:bool) {
     // Error handling was already done. Just iterate blindly through all switches
-    let (swcs, vals) = libargs::swcs();
+    let (swcs, vals) = args::swcs();
     let mut index = 0;
     while index < swcs.len() {
         let s = &swcs[index];

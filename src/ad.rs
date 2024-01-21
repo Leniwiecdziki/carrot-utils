@@ -1,11 +1,11 @@
 use std::fs;
 use std::io::ErrorKind;
 use std::process;
-mod libargs;
+use carrot_libs::args;
 
 fn main() {
-    let opts = libargs::opts();
-    let (swcs, vals) = libargs::swcs();
+    let opts = args::opts();
+    let (swcs, vals) = args::swcs();
     for v in vals {
         if !v.is_empty() {
             eprintln!("None of this program's switches accepts a value."); process::exit(1); 

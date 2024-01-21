@@ -5,12 +5,12 @@ use std::os::unix::fs::FileExt;
 use std::process;
 use std::io;
 use rand::Rng;
-mod libargs;
-mod libinput;
+use carrot_libs::args;
+use carrot_libs::input;
 
 fn ask(opt: &String) -> bool {
     let mut toclear:bool = false;
-    let input = libinput::get(format!("{}: Do you really want to delete this? [y/n]: ", opt));
+    let input = input::get(format!("{}: Do you really want to delete this? [y/n]: ", opt));
     if input.len() != 1 {
         println!("Sorry! I don't undestand your input.");
         ask(opt);
@@ -34,8 +34,8 @@ fn parselen(lenght:&String) -> u64 {
 }
 
 fn main() {
-    let opts = libargs::opts();
-    let (swcs, vals) = libargs::swcs();
+    let opts = args::opts();
+    let (swcs, vals) = args::swcs();
 
     // If no options were passed
     if opts.is_empty() {

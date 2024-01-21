@@ -5,8 +5,8 @@ use std::os::unix::process::ExitStatusExt;
 use std::process;
 use std::env;
 use std::collections::HashMap;
-mod libargs;
-mod libinput;
+use carrot_libs::args;
+use carrot_libs::input;
 
 /*
 There are three types of commands in RUSH
@@ -34,8 +34,8 @@ struct CommandStatus {
 }
 
 fn main() {
-    let opts = libargs::opts();
-    let (swcs, vals) = libargs::swcs();
+    let opts = args::opts();
+    let (swcs, vals) = args::swcs();
 
     // Refuse to run when switches have been passed
     if ! swcs.is_empty() {
@@ -97,7 +97,7 @@ fn main() {
 fn getinput(prompt:String) -> Vec<Vec<String>> {
     // This list contains all commands passed by the user 
     let mut commands: Vec<Vec<String>> = Vec::new();
-    let mut words = libinput::get(prompt);
+    let mut words = input::get(prompt);
         /*
         This will be used to separate SUPER COMMANDS from anything else
         Expected output: ('af' 'file'), ('then'), ('ad' 'dir')

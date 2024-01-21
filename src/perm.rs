@@ -2,12 +2,11 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::process;
 use std::ffi::CString;
-mod libargs;
-mod lib2human;
-mod lib2machine;
-mod libfileinfo;
-mod libdir;
-extern crate libc;
+use carrot_libs::args;
+use carrot_libs::kinder;
+use carrot_libs::unkinder;
+use carrot_libs::fileinfo;
+use carrot_libs::dir;
 use libc::chmod;
 
 //#[derive(Debug)]-
@@ -16,8 +15,8 @@ struct ModesTable {
 }
 
 fn main() {
-    let opts = libargs::opts();
-    let (swcs, vals) = libargs::swcs();
+    let opts = args::opts();
+    let (swcs, vals) = args::swcs();
 
     let mut rec = false;
     let mut verbose = false;
@@ -79,14 +78,14 @@ fn main() {
 }
 
 fn checkmode(input:&Vec<&str>, file:PathBuf) -> ModesTable {
-    let prev_perms = libfileinfo::perms(&file).unwrap();
+    let prev_perms = fileinfo::perms(&file).unwrap();
 
     match input.len() {
         0 => { eprintln!("No modes!"); process::exit(1); },
         1 =>
             ModesTable {
                 user:
-                    if input[0] != "n" { lib2machine::perms(input[0], true) }
+                    if input[0] != "n" { unkinder::perms(input[0], true) }
                     else { prev_perms.1 },
                 group: prev_perms.2,
                 other: prev_perms.3,
@@ -95,10 +94,10 @@ fn checkmode(input:&Vec<&str>, file:PathBuf) -> ModesTable {
         2 => 
             ModesTable {
                 user:
-                    if input[0] != "n" { lib2machine::perms(input[0], true) }
+                    if input[0] != "n" { unkinder::perms(input[0], true) }
                     else { prev_perms.1 },
                 group:
-                    if input[1] != "n" { lib2machine::perms(input[1], true) }
+                    if input[1] != "n" { unkinder::perms(input[1], true) }
                     else { prev_perms.2 },
                 other: prev_perms.3,
                 additional: prev_perms.0,
@@ -107,13 +106,13 @@ fn checkmode(input:&Vec<&str>, file:PathBuf) -> ModesTable {
         3 => 
             ModesTable {
                 user:
-                    if input[0] != "n" { lib2machine::perms(input[0], true) }
+                    if input[0] != "n" { unkinder::perms(input[0], true) }
                     else { prev_perms.1 },
                 group:
-                    if input[1] != "n" { lib2machine::perms(input[1], true) }
+                    if input[1] != "n" { unkinder::perms(input[1], true) }
                     else { prev_perms.2 },
                 other: 
-                    if input[2] != "n" { lib2machine::perms(input[2], true) }
+                    if input[2] != "n" { unkinder::perms(input[2], true) }
                     else { prev_perms.3 },
                 additional: prev_perms.0,
             },
@@ -121,16 +120,16 @@ fn checkmode(input:&Vec<&str>, file:PathBuf) -> ModesTable {
         4 => 
             ModesTable {
                 user:
-                    if input[0] != "n" { lib2machine::perms(input[0], true) }
+                    if input[0] != "n" { unkinder::perms(input[0], true) }
                     else { prev_perms.1 },
                 group:
-                    if input[1] != "n" { lib2machine::perms(input[1], true) }
+                    if input[1] != "n" { unkinder::perms(input[1], true) }
                     else { prev_perms.2 },
                 other: 
-                    if input[2] != "n" { lib2machine::perms(input[2], true) }
+                    if input[2] != "n" { unkinder::perms(input[2], true) }
                     else { prev_perms.3 },
                 additional: 
-                    if input[3] != "n" { lib2machine::perms(input[3], false) }
+                    if input[3] != "n" { unkinder::perms(input[3], false) }
                     else { prev_perms.0 },
             },
 
@@ -162,7 +161,7 @@ fn changemode(path:&str, mode: &str, verbose:&bool) {
 
 fn browsedir(path:&Path, mode:&String, rec:&bool, verbose:&bool) {
     // List where all found files will be stored
-    let result = libdir::browse(path);
+    let result = dir::browse(path);
 
     // Add new elements to 'result'
     for r in &result {

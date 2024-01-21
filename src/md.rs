@@ -1,15 +1,15 @@
 use std::fs;
 use std::os::unix::fs::{MetadataExt, FileTypeExt, PermissionsExt};
 use std::process;
-mod lib2human;
-mod lib2machine;
-mod libargs;
+use carrot_libs::kinder;
+use carrot_libs::unkinder;
+use carrot_libs::args;
 
 const FIELDS:[&str; 11] = ["name", "type", "size", "perms", "usrown", "grpown", "inode", "hlinks", "atime", "ctime", "mtime"];
 
 fn main() {
-    let opts: Vec<String> = libargs::opts();
-    let (swcs, vals) = libargs::swcs();
+    let opts: Vec<String> = args::opts();
+    let (swcs, vals) = args::swcs();
     if opts.is_empty() {
         eprintln!("This program requires at least one resource name to present!");
         process::exit(1);
@@ -111,7 +111,7 @@ fn main() {
         if fields_to_show.contains(&String::from("size")) || show_all_fields {
             let fieldname = if human { "Size" } else { "size" };
             let value = if human {
-                lib2human::size(command_to_match.size())
+                kinder::size(command_to_match.size())
             }
             else {
                 command_to_match.size().to_string()
@@ -130,10 +130,10 @@ fn main() {
             let additional = converted_perms_mode.chars().nth_back(3).unwrap();
             
             let (u,g,o,a) = if human {
-                (lib2human::perms(user.to_digit(10).unwrap(), true),
-                lib2human::perms(group.to_digit(10).unwrap(), true),
-                lib2human::perms(others.to_digit(10).unwrap(), true),
-                lib2human::perms(additional.to_digit(10).unwrap(), false))
+                (kinder::perms(user.to_digit(10).unwrap(), true),
+                kinder::perms(group.to_digit(10).unwrap(), true),
+                kinder::perms(others.to_digit(10).unwrap(), true),
+                kinder::perms(additional.to_digit(10).unwrap(), false))
             }
             else {
                 (user.to_string(), group.to_string(), others.to_string(), additional.to_string())
@@ -172,12 +172,12 @@ fn main() {
                 println!("{fieldname}: {time}");
             }
             else {
-                let sec = lib2human::sec(time);
-                let min = lib2human::min(time);
-                let hour = lib2human::hour(time);
-                let day = lib2human::day(time);
-                let month = lib2human::month(time);
-                let year = lib2human::year(time);
+                let sec = kinder::sec(time);
+                let min = kinder::min(time);
+                let hour = kinder::hour(time);
+                let day = kinder::day(time);
+                let month = kinder::month(time);
+                let year = kinder::year(time);
                 println!("{fieldname}: {day}/{month}/{year} {hour}:{min}:{sec}");
             }
         };
@@ -188,12 +188,12 @@ fn main() {
                 println!("{fieldname}: {time}");
             }
             else {
-                let sec = lib2human::sec(time);
-                let min = lib2human::min(time);
-                let hour = lib2human::hour(time);
-                let day = lib2human::day(time);
-                let month = lib2human::month(time);
-                let year = lib2human::year(time);
+                let sec = kinder::sec(time);
+                let min = kinder::min(time);
+                let hour = kinder::hour(time);
+                let day = kinder::day(time);
+                let month = kinder::month(time);
+                let year = kinder::year(time);
                 println!("{fieldname}: {day}/{month}/{year} {hour}:{min}:{sec}");
             }
         };
@@ -204,12 +204,12 @@ fn main() {
                 println!("{fieldname}: {time}");
             }
             else {
-                let sec = lib2human::sec(time);
-                let min = lib2human::min(time);
-                let hour = lib2human::hour(time);
-                let day = lib2human::day(time);
-                let month = lib2human::month(time);
-                let year = lib2human::year(time);
+                let sec = kinder::sec(time);
+                let min = kinder::min(time);
+                let hour = kinder::hour(time);
+                let day = kinder::day(time);
+                let month = kinder::month(time);
+                let year = kinder::year(time);
                 println!("{fieldname}: {day}/{month}/{year} {hour}:{min}:{sec}");
             }
         };

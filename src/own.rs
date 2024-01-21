@@ -2,14 +2,14 @@ use std::os;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process;
-mod libargs;
-mod lib2human;
-mod lib2machine;
-mod libdir;
+use carrot_libs::kinder;
+use carrot_libs::unkinder;
+use carrot_libs::args;
+use carrot_libs::dir;
 
 fn main() {
-    let opts = libargs::opts();
-    let (swcs, vals) = libargs::swcs();
+    let opts = args::opts();
+    let (swcs, vals) = args::swcs();
 
     let mut rec = false;
     let mut link = false;
@@ -132,7 +132,7 @@ fn changeown(path:&str, user:&Option<u32>, group:&Option<u32>, verbose:&bool, li
 
 fn browsedir(path:&Path, user:&Option<u32>, group:&Option<u32>, rec:&bool, verbose:&bool, link:&bool) {
     // List where all found files will be stored
-    let result = libdir::browse(path);
+    let result = dir::browse(path);
 
     // Add new elements to 'result'
     for r in &result {

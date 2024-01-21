@@ -2,12 +2,12 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::process;
 use std::fs;
-mod libargs;
-mod libdir;
+use carrot_libs::args;
+use carrot_libs::dir;
 
 fn main() {
-    let mut opts = libargs::opts();
-    let (swcs, vals) = libargs::swcs();
+    let mut opts = args::opts();
+    let (swcs, vals) = args::swcs();
     // In this program, every option should be a dirname to show
     // If there are no options passed to the program, add a dot
     if opts.is_empty() {
@@ -78,7 +78,7 @@ fn main() {
 }
 
 fn showdir(original_request:&Path, dir:&Path, hidden: &bool, rec:&bool, sort:&bool, color:&bool) {
-    let result = libdir::browse(dir);
+    let result = dir::browse(dir);
     let mut sorted_result = Vec::new();
     
     // For every element found in directory
