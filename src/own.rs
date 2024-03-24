@@ -2,8 +2,6 @@ use std::os;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process;
-use carrot_libs::kinder;
-use carrot_libs::unkinder;
 use carrot_libs::args;
 use carrot_libs::dir;
 

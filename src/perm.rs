@@ -3,7 +3,6 @@ use std::path::PathBuf;
 use std::process;
 use std::ffi::CString;
 use carrot_libs::args;
-use carrot_libs::kinder;
 use carrot_libs::unkinder;
 use carrot_libs::fileinfo;
 use carrot_libs::dir;

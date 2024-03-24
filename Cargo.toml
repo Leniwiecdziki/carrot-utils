@@ -1,6 +1,6 @@
 [package]
 name = "carrot_utils"
-version = "0.2.3"
+version = "0.2.4"
 edition = "2021"
 
 [build]
@@ -33,10 +33,14 @@ name = "af"
 path = "src/af.rs"
 
 [[bin]]
-name = "c"
-path = "src/c.rs"
+name = "cp"
+path = "src/cp.rs"
 
 [[bin]]
+name = "count"
+path = "src/count.rs"
+
+[[sublib]]
 name = "count"
 path = "src/count.rs"
 
@@ -57,8 +61,8 @@ name = "loathe"
 path = "src/loathe.rs"
 
 [[bin]]
-name = "m"
-path = "src/m.rs"
+name = "mv"
+path = "src/mv.rs"
 
 [[bin]]
 name = "md"
@@ -93,17 +97,25 @@ name = "rf"
 path = "src/rf.rs"
 
 [[bin]]
-name = "rush"
-path = "src/rush.rs"
-
-[[bin]]
 name = "seek"
 path = "src/seek.rs"
+
+[[bin]]
+name = "shrink"
+path = "src/shrink.rs"
+
+[[subbin]]
+name = "shrink"
+path = "src/shrink.rs"
 
 [[bin]]
 name = "sl"
 path = "src/sl.rs"
 
 [[bin]]
+name = "tr"
+path = "src/tr.rs"
+
+[[sublib]]
 name = "tr"
 path = "src/tr.rs"

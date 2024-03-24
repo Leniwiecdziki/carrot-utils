@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::fs;
 use std::io::{self, IsTerminal, Read};
 use std::process;
@@ -91,7 +92,7 @@ fn main() {
     };
 }
 
-fn printline(text:&String) {
+pub fn printline(text:&str) {
     // Associated number (start with number 0)
     let mut idx = 1;
 
@@ -101,10 +102,10 @@ fn printline(text:&String) {
     };
 }
 
-fn index_lines(text:&String) {
+pub fn index_lines(text:&str) {
     println!("{}", text.lines().count());
 }
 
-fn index_chars(text:&String) {
+pub fn index_chars(text:&str) {
     println!("{}", text.chars().count());
 }

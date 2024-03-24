@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::fs;
 use std::collections::HashMap;
 use std::io::{self, IsTerminal, Read};
@@ -87,36 +88,31 @@ fn main() {
     };
 }
 
-fn index_lines(text:&String) -> HashMap<usize, String> {
+pub fn index_lines(text:&str) -> HashMap<usize, String> {
     // Prepared lines will be stored there
     let mut lines = HashMap::new();
-    // Associated number (start with number 0)
-    let mut idx = 0;
 
     // Now, for every line in our retrieved contents...
-    for line in text.lines() {
+    for (idx, line) in text.lines().enumerate() {
         // Add it to "lines" with proper ID
         lines.insert(idx, line.to_string());
-        idx += 1;
     };
     lines
 }
 
-fn index_chars(text:&String) -> HashMap<usize, String> {
+pub fn index_chars(text:&str) -> HashMap<usize, String> {
     // Prepared characters will be stored there
     let mut chars = HashMap::new();
     // Associated number (start with number 0)
-    let mut idx = 0;
 
     // Now, for every single letter in our retrieved contents...
-    for char in text.chars() {
+    for (idx, char) in text.chars().enumerate() {
         chars.insert(idx, char.to_string());
-        idx += 1;
     };
     chars
 }
 
-fn chtext(lines:HashMap<usize, String>, chars:HashMap<usize, String>, line_number:bool) {
+pub fn chtext(lines:HashMap<usize, String>, chars:HashMap<usize, String>, line_number:bool) {
     // Error handling was already done. Just iterate blindly through all switches
     let (swcs, vals) = args::swcs();
     let mut index = 0;
@@ -125,10 +121,7 @@ fn chtext(lines:HashMap<usize, String>, chars:HashMap<usize, String>, line_numbe
         let v = &vals[index];
        
         // Parse INT from value
-        let nr_from_value = match v.parse::<usize>() {
-            Ok(e) => e,
-            Err(_) => 1,
-        };
+        let nr_from_value = v.parse::<usize>().unwrap_or(1);
 
         let read_per_line = READ_PER_LINE.contains(&s.as_str());
         let read_per_char = READ_PER_CHAR.contains(&s.as_str());

@@ -89,15 +89,21 @@
 ### Added on 21.01.2024:
 
  - *: Migrate libraries to another project called "carrot-libs"
+ - C: Renamed to CP
+ - M: Renamed to MV
+
+# Release 0.2.4:
+
+### Added on 24.03.2024:
+
+- RUSH: Migrated to another project
 
 ### Waiting features:
 
 - PAGE: Move code responsible for shrinking wide lines to a function so the code would be more readable
-	- Some example things, that this program can do:
-	- Shrink large lines
+- TR: Shrink large lines
 - REX: Tool that executes commands as other users (NEW PROGRAM!)
 - PERM: ACLs support
-- L: Column output
 
 # Release 0.3.0:
 
@@ -105,6 +111,7 @@
 
 - GET: Add a tool that can retrieve information about system
 - SET: Settings!
+- RUSH: Deal with char boundaries
 - RUSH: Ability to view and modify variables
 - RUSH: Restricted shell mode
 - RUSH: Run files (scripts) passed as arguments from CLI

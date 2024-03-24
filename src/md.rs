@@ -2,7 +2,6 @@ use std::fs;
 use std::os::unix::fs::{MetadataExt, FileTypeExt, PermissionsExt};
 use std::process;
 use carrot_libs::kinder;
-use carrot_libs::unkinder;
 use carrot_libs::args;
 
 const FIELDS:[&str; 11] = ["name", "type", "size", "perms", "usrown", "grpown", "inode", "hlinks", "atime", "ctime", "mtime"];

@@ -1,5 +1,4 @@
 use carrot_libs::args;
-use carrot_libs::input;
 use carrot_libs::dir;
 use carrot_libs::fileinfo;
 use carrot_libs::kinder;
