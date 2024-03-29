@@ -97,19 +97,31 @@ fn main() {
             },
             Ok(f) => {
                 prepare_console();
+                // Create a new list of lines to print
                 let mut lines = HashMap::new();
                 let mut idx = 0;
+                // Get terminal width so we can know where to split long lines
                 let terminal_width = terminal::size().unwrap().0 as usize;
                 for line in f.lines() {
-                    if line.len() > terminal_width {
-                        let how_many_iterations = line.len() / terminal_width;
+                    // If line is longer than expected, try to cut it
+                    if line.char_indices().count() > terminal_width {
+                        // How many times we need to exec the loop?
+                        let how_many_iterations = line.char_indices().count() / terminal_width;
+                        // How many times did the loop ran?
                         let mut split_count = 1;
                         while split_count != how_many_iterations+1 {
                             let previous_split_count = split_count-1;
+                            // Get the number of characters to skip
+                            // They were already added to the "lines" list in previous loop iterations
                             let n = previous_split_count * terminal_width;
-                            let shorter_line = line[n..].split_at(terminal_width);
+                            // Find the number of character to split by
+                            let index = line.char_indices().nth(n).unwrap().0;
+                            // GO!
+                            let shorter_line = line[n..].split_at(index);
+                            // Append splitted line to the list
                             lines.insert(idx, shorter_line.0);
                             idx += 1;
+                            // Append remaining text to the "lines" list
                             if split_count == how_many_iterations {
                                 lines.insert(idx, shorter_line.1);
                                 idx += 1;
@@ -117,6 +129,7 @@ fn main() {
                             split_count +=1;
                         };
                     }
+                    // If line is shorter than our terminal - don't do anything
                     else {
                         lines.insert(idx, line);
                         idx += 1;

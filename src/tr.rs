@@ -103,7 +103,6 @@ pub fn index_lines(text:&str) -> HashMap<usize, String> {
 pub fn index_chars(text:&str) -> HashMap<usize, String> {
     // Prepared characters will be stored there
     let mut chars = HashMap::new();
-    // Associated number (start with number 0)
 
     // Now, for every single letter in our retrieved contents...
     for (idx, char) in text.chars().enumerate() {

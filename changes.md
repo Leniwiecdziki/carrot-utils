@@ -98,6 +98,10 @@
 
 - RUSH: Migrated to another project
 
+# Release 0.2.5:
+
+- PAGE: Deal with char boundaries
+
 ### Waiting features:
 
 - PAGE: Move code responsible for shrinking wide lines to a function so the code would be more readable
@@ -111,12 +115,3 @@
 
 - GET: Add a tool that can retrieve information about system
 - SET: Settings!
-- RUSH: Deal with char boundaries
-- RUSH: Ability to view and modify variables
-- RUSH: Restricted shell mode
-- RUSH: Run files (scripts) passed as arguments from CLI
-- RUSH: Sleep/wait command
-- RUSH: History
-- RUSH: Up and down keys for history browsing
-- RUSH: Pipes
-- RUSH: Ability to redirect command's output to a file
