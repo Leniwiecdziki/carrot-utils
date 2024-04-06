@@ -16,6 +16,7 @@ fn main() {
     let mut hidden = false;
     let mut sort = true;
     let mut color = false;
+    let mut notitle = false;
     let mut rec = false;
 
     let mut index = 0;
@@ -30,7 +31,8 @@ fn main() {
         if s != "h" && s != "hidden" 
         && s != "r" && s != "rec"
         && s != "c" && s != "color"
-        && s != "n" && s != "nosort" {
+        && s != "t" && s != "notitle"
+        && s != "s" && s != "nosort" {
             eprintln!("Unknown switch: {s}");
             process::exit(1);
         }
@@ -40,8 +42,11 @@ fn main() {
         if s == "r" || s == "rec" {
             rec = true;
         }
-        if s == "n" || s == "nosort" {
+        if s == "s" || s == "nosort" {
             sort = false;
+        }
+        if s == "t" || s == "notitle" {
+            notitle = true;
         }
         if s == "c" || s == "color" {
             color = true;
@@ -51,7 +56,9 @@ fn main() {
 
     let mut index = 0;
     while index < opts.len() {
-        println!("{}:", opts[index]);
+        if !notitle {
+            println!("{}:", opts[index]);
+        };
         if ! Path::new(&opts[index]).exists() {
             eprintln!("Requested directory does not exist!");
             index += 1;

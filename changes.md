@@ -109,10 +109,12 @@
 ### Added on 08.04.2024:
 
 - COL: A tool to columnize output (NEW PROGRAM)
+- L: Switch "n" was renamed to "s"
+- L: Ability to hide the name of folder that is being listed
+- M: Tries to copy and remove file from source if the destination path is on another disk
 
 ### Waiting features:
 
-- L: Ability to hide the name of folder that is being listed
 - PAGE: Move code responsible for shrinking wide lines to a function so the code would be more readable
 - TR: Shrink wide lines, uppercase/lowercase whole text
 - REX: Tool that executes commands as other users (NEW PROGRAM!)

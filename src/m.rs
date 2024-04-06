@@ -1,4 +1,5 @@
 use std::io::ErrorKind;
+use std::os::unix::fs::MetadataExt;
 use std::process;
 use std::fs;
 use std::path::PathBuf;
@@ -299,10 +300,25 @@ fn rename(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&b
     };
 
     if overwrite || !dest.exists() {
-        match fs::rename(source, dest) {
-            Err(e) => eprintln!("{}: Cannot move resource because of an error: {:?}", &source.display(), e.kind()),
-            Ok(_) => if *verbose {println!("{}: Moved successfully", &source.display())},
-        };
+        // Do usual rename operation if both files are on the same disk
+        if source.metadata().unwrap().dev() == dest.metadata().unwrap().dev() {
+            match fs::rename(source, dest) {
+                Err(e) => eprintln!("{}: Cannot move resource because of an error: {:?}", &source.display(), e.kind()),
+                Ok(_) => if *verbose {println!("{}: Moved successfully", &source.display())},
+            };
+        }
+        // If not, copy and remove it from source
+        else {
+            match fs::copy(source, dest) {
+                Err(e) => eprintln!("{}: Cannot copy resource because of an error: {:?}", &source.display(), e.kind()),
+                Ok(_) => if *verbose {println!("{}: Copied successfully", &source.display())},
+            };
+            match fs::remove_dir_all(source) {
+                Err(e) => eprintln!("{}: Cannot remove source file(s) because of an error: {:?}", &source.display(), e.kind()),
+                Ok(_) => if *verbose {println!("{}: Source file(s) removed successfully", &source.display())},
+            };
+        }
+        
     }
     else {
         eprintln!("{}: Overwriting is disabled! Refusing to use this destination!", dest.display())
