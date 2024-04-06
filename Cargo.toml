@@ -1,6 +1,6 @@
 [package]
 name = "carrot_utils"
-version = "0.2.5"
+version = "0.2.6"
 edition = "2021"
 
 [build]
@@ -33,8 +33,12 @@ name = "af"
 path = "src/af.rs"
 
 [[bin]]
-name = "cp"
-path = "src/cp.rs"
+name = "c"
+path = "src/c.rs"
+
+[[bin]]
+name = "col"
+path = "src/col.rs"
 
 [[bin]]
 name = "count"
@@ -61,8 +65,8 @@ name = "loathe"
 path = "src/loathe.rs"
 
 [[bin]]
-name = "mv"
-path = "src/mv.rs"
+name = "m"
+path = "src/m.rs"
 
 [[bin]]
 name = "md"

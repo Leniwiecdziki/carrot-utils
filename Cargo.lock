@@ -22,14 +22,14 @@ checksum = "327762f6e5a765692301e5bb513e0d9fef63be86bbc14528052b1cd3e6f03e07"
 
 [[package]]
 name = "carrot_libs"
-version = "0.2.3"
+version = "0.2.5"
 dependencies = [
  "crossterm",
 ]
 
 [[package]]
 name = "carrot_utils"
-version = "0.2.5"
+version = "0.2.6"
 dependencies = [
  "carrot_libs",
  "crossterm",

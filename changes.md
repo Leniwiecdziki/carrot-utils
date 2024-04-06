@@ -100,12 +100,21 @@
 
 # Release 0.2.5:
 
+### Added on 29.03.2024:
+
 - PAGE: Deal with char boundaries
+
+# Release 0.2.6:
+
+### Added on 08.04.2024:
+
+- COL: A tool to columnize output (NEW PROGRAM)
 
 ### Waiting features:
 
+- L: Ability to hide the name of folder that is being listed
 - PAGE: Move code responsible for shrinking wide lines to a function so the code would be more readable
-- TR: Shrink large lines
+- TR: Shrink wide lines, uppercase/lowercase whole text
 - REX: Tool that executes commands as other users (NEW PROGRAM!)
 - PERM: ACLs support
 

@@ -81,7 +81,7 @@ fn main() {
                 index += 1;
             },
             Ok(f) => {
-            chtext(index_lines(&f), index_chars(&f), line_number);
+                chtext(index_lines(&f), index_chars(&f), line_number);
             },
         };
         index += 1;
