@@ -88,7 +88,7 @@ fn main() {
     while index < opts.len() {
         // If 'toclear' is true, write a random number to each byte of a file
         if toclear {
-            match fs::OpenOptions::new().read(true).write(true).create(true).open(&opts[index]) {
+            match fs::OpenOptions::new().read(true).write(true).create(true).truncate(true).open(&opts[index]) {
                 Err(e) => eprintln!("{}: Couldn't open a file because of an error: {:?}!", &opts[index], e.kind()),
                 Ok(file) => {
                     let bytes_to_write = if get_lenght_automatically {

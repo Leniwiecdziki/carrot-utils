@@ -112,11 +112,12 @@
 - L: Switch "n" was renamed to "s"
 - L: Ability to hide the name of folder that is being listed
 - M: Tries to copy and remove file from source if the destination path is on another disk
+- CASE: Convert every letter to uppercase/lowercase
 
 ### Waiting features:
 
 - PAGE: Move code responsible for shrinking wide lines to a function so the code would be more readable
-- TR: Shrink wide lines, uppercase/lowercase whole text
+- TR: Shrink wide lines
 - REX: Tool that executes commands as other users (NEW PROGRAM!)
 - PERM: ACLs support
 

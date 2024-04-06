@@ -37,6 +37,10 @@ name = "c"
 path = "src/c.rs"
 
 [[bin]]
+name = "case"
+path = "src/case.rs"
+
+[[bin]]
 name = "col"
 path = "src/col.rs"
 

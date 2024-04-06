@@ -39,7 +39,7 @@ fn main() {
 
     // Show error when there are no files requested as options by user and nothing is piped to the program
     if opts.is_empty() && io::stdin().is_terminal() {
-        eprintln!("Type the name of elements to preview!");
+        eprintln!("Type the name of elements to use!");
         process::exit(1);
     }
 
