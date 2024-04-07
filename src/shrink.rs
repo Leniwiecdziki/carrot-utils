@@ -18,7 +18,7 @@ fn main() {
         process::exit(1);
     }
     // Save the first option as a width parameter
-    let width = opts[0].parse::<usize>().expect("Failed to convert user input to a number");
+    let width = opts[0].parse::<usize>().expect("Failed to convert user input to a number!");
     // and remove it from the list
     opts.remove(0);
 
@@ -27,10 +27,8 @@ fn main() {
         // Save contents of STDIN to a string
         let mut contents_of_stdin = String::new();
         io::stdin().lock().read_to_string(&mut contents_of_stdin).expect("Failed to retrieve contents of stdin!");
-        let output = shrink(width, &contents_of_stdin);
-        println!("{}", output);
+        shrink(width, &contents_of_stdin);
     };
-
     if opts.is_empty() {
         process::exit(0);
     }
@@ -43,40 +41,28 @@ fn main() {
                 index += 1;
             },
             Ok(f) => {
-                let output = shrink(width, &f);
-                println!("{}", output);
+                shrink(width, &f);
             },
         };
         index += 1;
     };
 }
 
-pub fn shrink(width:usize, text:&str) -> String {
+pub fn shrink(width:usize, text:&str) {
     // Prepared lines will be stored there
-    let mut lines = String::new();
+    let mut output = String::new();
 
     // Now, for every line in our retrieved contents...
-    for line in text.lines() {
-        if line.len() > width {
-            // How many times do we need to shrink it?
-            let how_many_iterations = line.len() / width;
-            // Start counting from 1
-            let mut split_count = 1;
-            while split_count != how_many_iterations+1 {
-                // If iteration was already ran, remove unneeded characters from line
-                let previous_split_count = split_count-1;
-                // The number of characters that were split in previous loop iteration
-                let n = previous_split_count * width;
-                let shorter_line = line[n..].split_at(width);
-                // Add a number and contents of a line to the list
-                lines.push_str(format!("{}\n", shorter_line.0).as_str());
-                // If this is the last iteration, add the last piece of text
-                if split_count == how_many_iterations {
-                    lines.push_str(format!("{}\n", shorter_line.1).as_str());
-                };
-                split_count +=1;
-            };
+    let mut idx = 1;
+    for c in text.chars() {
+        // Insert chars as usual
+        output.push(c);
+        // If the width is reached, make a new line
+        if idx > width {
+            output.push('\n');
+            idx=1;
         }
+        idx+=1;
     }
-    lines
+    println!("{}", output);
 }

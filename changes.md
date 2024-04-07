@@ -108,11 +108,12 @@
 
 ### Added on 08.04.2024:
 
-- COL: A tool to columnize output (NEW PROGRAM)
+- COL: A tool to columnize output (NEW PROGRAM!)
 - L: Switch "n" was renamed to "s"
 - L: Ability to hide the name of folder that is being listed
 - M: Tries to copy and remove file from source if the destination path is on another disk
 - CASE: Convert every letter to uppercase/lowercase
+- SHRINK: Make wide lines smaller (NEW PROGRAM!)
 
 ### Waiting features:
 

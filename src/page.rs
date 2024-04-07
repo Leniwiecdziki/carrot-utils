@@ -104,7 +104,7 @@ fn main() {
                 let terminal_width = terminal::size().unwrap().0 as usize;
                 for line in f.lines() {
                     // If line is longer than expected, try to cut it
-                    if line.char_indices().count() > terminal_width {
+                    if line.chars().count() > terminal_width {
                         // How many times we need to exec the loop?
                         let how_many_iterations = line.char_indices().count() / terminal_width;
                         // How many times did the loop ran?
