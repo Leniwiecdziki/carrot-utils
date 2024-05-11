@@ -1,14 +1,14 @@
 
 # Release 0.1.0
 
-### Added on 22.12.2023:
+### Added on 22.12.2023
 
 - C: Fixed an issue, when user tried to copy a file to directory with a new name.
 - P: Program was rewritten
 - PERM: Fixed issues with verbose mode still being enabled while it shouldn't
 - RUSH: Added an extremely early shell for CarrotOS
 
-### Added on 23.12.2023:
+### Added on 23.12.2023
 
 - C: Fixed directory to directory copying
 - RUSH: Can understand some built-in commands and execute commands
@@ -86,7 +86,7 @@
 
 # Release 0.2.3:
 
-### Added on 21.01.2024:
+### Added on 21.01.2024
 
  - *: Migrate libraries to another project called "carrot-libs"
  - C: Renamed to CP
@@ -94,19 +94,19 @@
 
 # Release 0.2.4:
 
-### Added on 24.03.2024:
+### Added on 24.03.2024
 
 - RUSH: Migrated to another project
 
 # Release 0.2.5:
 
-### Added on 29.03.2024:
+### Added on 29.03.2024
 
 - PAGE: Deal with char boundaries
 
 # Release 0.2.6:
 
-### Added on 08.04.2024:
+### Added on 08.04.2024
 
 - COL: A tool to columnize output (NEW PROGRAM!)
 - L: Switch "n" was renamed to "s"
@@ -118,7 +118,6 @@
 ### Waiting features:
 
 - PAGE: Move code responsible for shrinking wide lines to a function so the code would be more readable
-- TR: Shrink wide lines
 - REX: Tool that executes commands as other users (NEW PROGRAM!)
 - PERM: ACLs support
 
@@ -126,5 +125,10 @@
 
 ### Waiting features:
 
-- GET: Add a tool that can retrieve information about system
-- SET: Settings!
+- CTRL: Add a tool that can retrieve and change system settings
+- DIV: Find divergent lines in files
+
+# Release 0.3.1:
+
+- HELP: View documentation
+- SCRIBUS: Generate documents from templates

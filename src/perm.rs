@@ -76,7 +76,7 @@ fn main() {
     }
 }
 
-fn checkmode(input:&Vec<&str>, file:PathBuf) -> ModesTable {
+fn checkmode(input:&[&str], file:PathBuf) -> ModesTable {
     let prev_perms = fileinfo::perms(&file).unwrap();
 
     match input.len() {
