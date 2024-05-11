@@ -29,7 +29,7 @@ dependencies = [
 
 [[package]]
 name = "carrot_utils"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "carrot_libs",
  "crossterm",

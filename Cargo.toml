@@ -1,6 +1,6 @@
 [package]
 name = "carrot_utils"
-version = "0.2.6"
+version = "0.2.7"
 edition = "2021"
 
 [build]
@@ -95,6 +95,10 @@ path = "src/page.rs"
 [[bin]]
 name = "perm"
 path = "src/perm.rs"
+
+[[bin]]
+name = "rex"
+path = "src/rex.rs"
 
 [[bin]]
 name = "rd"

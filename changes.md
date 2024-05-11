@@ -115,10 +115,15 @@
 - CASE: Convert every letter to uppercase/lowercase
 - SHRINK: Make wide lines smaller (NEW PROGRAM!)
 
+# Release 0.2.7:
+
+### Added on 11.04.2024
+
+- REX: Tool that executes commands as other users (NEW PROGRAM!) (Very incomplete support)
+
 ### Waiting features:
 
 - PAGE: Move code responsible for shrinking wide lines to a function so the code would be more readable
-- REX: Tool that executes commands as other users (NEW PROGRAM!)
 - PERM: ACLs support
 
 # Release 0.3.0:
