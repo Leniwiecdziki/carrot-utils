@@ -117,7 +117,7 @@
 
 # Release 0.2.7:
 
-### Added on 11.04.2024
+### Added on 11.05.2024
 
 - REX: Tool that executes commands as other users (NEW PROGRAM!) (Very incomplete support)
 
@@ -128,10 +128,15 @@
 
 # Release 0.3.0:
 
+### Added on 12.05.2024
+
+- USERUTIL: Change system users (NEW PROGRAM!)
+
 ### Waiting features:
 
-- CTRL: Add a tool that can retrieve and change system settings
-- DIV: Find divergent lines in files
+- DISKUTIL: Disk management (NEW PROGRAM!)
+- REX: Add more functionality
+- DIV: Find divergent lines in files (NEW PROGRAM!)
 
 # Release 0.3.1:
 

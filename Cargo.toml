@@ -1,6 +1,6 @@
 [package]
 name = "carrot_utils"
-version = "0.2.7"
+version = "0.3.0"
 edition = "2021"
 
 [build]
@@ -18,8 +18,12 @@ directory = "vendor"
 
 [dependencies]
 libc = "*"
-rand = "0.8.4"
+rand = "*"
 crossterm = "*"
+serde = "*"
+serde_derive = "*"
+confy = "*"
+chrono = "*"
 
 [dependencies.carrot_libs]
 path = "../carrot-libs"
@@ -45,10 +49,6 @@ name = "col"
 path = "src/col.rs"
 
 [[bin]]
-name = "count"
-path = "src/count.rs"
-
-[[sublib]]
 name = "count"
 path = "src/count.rs"
 
@@ -131,3 +131,7 @@ path = "src/tr.rs"
 [[sublib]]
 name = "tr"
 path = "src/tr.rs"
+
+[[bin]]
+name = "userutil"
+path = "src/userutil.rs"
