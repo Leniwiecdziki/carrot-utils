@@ -1,5 +1,5 @@
 
-# Release 0.1.0
+# Release 0.1.0:
 
 ### Added on 22.12.2023
 
@@ -13,7 +13,7 @@
 - C: Fixed directory to directory copying
 - RUSH: Can understand some built-in commands and execute commands
 
-# Release 0.1.1
+# Release 0.1.1:
 
 ### Added on 28.12.2023
 
@@ -21,7 +21,7 @@
 - JUNK: Ability to create files with zeroes or random bytes of desired size
 - JUNK: Verbose mode
 
-# Release 0.2.0
+# Release 0.2.0:
 
 ### Added on 28.12.2023
 
@@ -56,7 +56,7 @@
 - L: When folder is being shown on the list, it's name will always end with "/"
 - P: Removed "start", "end" and "rev" switches. There will be added a tool to change command output
 
-# Release 0.2.1
+# Release 0.2.1:
 
 ### Added on 06.01.2024
 
@@ -67,7 +67,7 @@
 
 - AD, AF: Added "ignore" switches. They allow user to ignore "AlreadyExists" error
 
-# Release 0.2.2
+# Release 0.2.2:
 
 ### Added on 14.01.2024
 
@@ -132,8 +132,13 @@
 
 - USERUTIL: Change system users (NEW PROGRAM!)
 
+### Added on 13.05.2024
+
+- USERUTIL: Supported user description field, ability to remove users
+
 ### Waiting features:
 
+- USERUTIL: Ability to set and manage passwords, ability to update existing users
 - DISKUTIL: Disk management (NEW PROGRAM!)
 - REX: Add more functionality
 - DIV: Find divergent lines in files (NEW PROGRAM!)
