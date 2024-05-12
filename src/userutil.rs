@@ -1,8 +1,6 @@
 use carrot_libs::args;
 use std::process;
 use serde_derive::{Serialize, Deserialize};
-use chrono;
-
 
 // List of all users
 #[derive(Serialize, Deserialize, Debug)]
@@ -81,8 +79,8 @@ fn main() {
     
     let mut index = 0;
     while index < swcs.len() {
-        let s = swcs[index];
-        let v = vals[index];
+        let s = swcs[index].clone();
+        let v = vals[index].clone();
 
         if s == "id" {
             id = match v.parse::<u32>() {
@@ -138,9 +136,9 @@ fn main() {
             };
         }
 
-        if s == "profile" {profile_dir=v.clone()}
+        if s == "profile" {profile_dir.clone_from(&v)}
 
-        if s == "shell" {shell=v.clone()}
+        if s == "shell" {shell.clone_from(&v)}
 
         index += 1;
     }
@@ -229,16 +227,14 @@ fn main() {
     }
 }
 
-fn isthere(request:&String, users_list:&Vec<User>) -> bool {
-    let mut count = 0;
-    for user in users_list {
+fn isthere(request:&String, users_list:&[User]) -> bool {
+    for (count, user) in users_list.iter().enumerate() {
         if user.name == *request || user.id.to_string() == *request {
             return  true;
         }
         if count == 0 {
             return false;
         }
-        count += 1;
     }
-    return false;
+    false
 }
