@@ -52,9 +52,10 @@ checksum = "79296716171880943b8470b5f8d03aa55eb2e645a4874bdbb28adb49162e012c"
 
 [[package]]
 name = "carrot_libs"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "crossterm",
+ "sha3",
 ]
 
 [[package]]
@@ -69,7 +70,6 @@ dependencies = [
  "rand",
  "serde",
  "serde_derive",
- "sha3",
 ]
 
 [[package]]

@@ -1,15 +1,14 @@
-use carrot_libs::{args,input};
+use carrot_libs::{args,input,system};
 use std::process;
 use serde_derive::{Serialize, Deserialize};
-use sha3::{Digest, Sha3_512};
 
-// List of all users
+// This sctructure defined typical list of all users
 #[derive(Serialize, Deserialize, Debug)]
 struct UsersList {
     users: Vec<User>,
 }
 
-// One, particular user
+// And this is a structure of one, particular user
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct User {
     id: u32,
@@ -27,8 +26,9 @@ struct User {
     shell: String,
 }
 
+// Default settings for "UsersList"
 impl ::std::default::Default for UsersList {
-    fn default() -> Self { 
+    fn default() -> Self {
         Self {
             users: Vec::from([
                 User {
@@ -47,10 +47,9 @@ impl ::std::default::Default for UsersList {
                     shell: String::from("/bin/rush"),
                 }
             ])
-        } 
+        }
     }
 }
-
 const CONFIG:&str = "/etc/users.toml";
 
 fn main() {
@@ -82,64 +81,56 @@ fn main() {
         }
     };
 
-    extern "C" {
-        fn geteuid() -> i32;
-    }
-    unsafe {
-        // Check current user ID
-        let current_uid = geteuid();
-        // Are we running as root?
-        let running_as_root = if current_uid == 0 {
-            true
-        }
-        else if current_uid == -1 {
-            eprintln!("Can't check current user identifier!");
-            process::exit(1);
-        }
-        else {
-            false
-        };
-        // If we're not running as root:
-        // check if we can change our password
-        // resolve user name
-        let mut output_chpass = false;
-        let mut output_name = "".to_string();
-        if running_as_root {
-            output_chpass = true;
-        } 
-        else {
-            for u in &cfg.users {
-                if u.id == current_uid.try_into().unwrap() {
-                    output_chpass = u.can_change_password;
-                    output_name.clone_from(&u.name);
-                }
+    // Check current user ID
+    let current_uid = match system::current_user() {
+        Ok(e) => e,
+        Err(e) => {eprintln!("Error: {}", e); process::exit(1);},
+    };
+    // Are we running as root?
+    let running_as_root = match system::isroot() {
+        Ok(e) => e,
+        Err(e) => {eprintln!("Error: {}", e); process::exit(1);},
+    };
+    // If we're not running as root:
+    // check if we can change our password
+    // resolve user name
+    let mut output_chpass = false;
+    let mut output_name = "".to_string();
+    if running_as_root {
+        output_chpass = true;
+    } 
+    else {
+        for u in &cfg.users {
+            if u.id == current_uid.try_into().unwrap() {
+                output_chpass = u.can_change_password;
+                output_name.clone_from(&u.name);
             }
-        };
-        let request_is_number = request.parse::<u32>().is_ok();
-        let request_points_to_current_user = if request_is_number {
-            request.parse::<u32>().unwrap() == current_uid.try_into().unwrap()
-        } else {
-            request == output_name
-        };
-
-        // VERY IMPORTANT:
-        // NO ONE but the root user should have the permission to use this program!
-        // The only exception are:
-        // 1. Usage of "update" action with "-pass" BUT ONLY if "can_change_password" is set to "true" and "request" points to currently logged in user.
-        // 2. Usage of "list" but only when "request" points to currently logged in user
-        // 3. Usage of "whois" or "isthere"
-        if !running_as_root && (
-
-        (action == "add" || action == "del") ||
-        (action == "update" &&
-        ( !output_chpass || !request_points_to_current_user || swcs.len()>1 || (swcs.len()==1 && !swcs.contains(&"pass".to_string())) )
-        ) ||
-        (action == "list" && !request_points_to_current_user)
-
-        )
-        {
-            eprintln!("You are not permitted to perform this operation!"); process::exit(1);
         }
+    };
+    let request_is_number = request.parse::<u32>().is_ok();
+    let request_points_to_current_user = if request_is_number {
+        request.parse::<u32>().unwrap() == current_uid.try_into().unwrap()
+    } else {
+        request == output_name
+    };
+
+    // VERY IMPORTANT:
+    // NO ONE but the root user should have the permission to use this program!
+    // The only exception are:
+    // 1. Usage of "update" action with "-pass" BUT ONLY if "can_change_password" is set to "true" and "request" points to currently logged in user.
+    // 2. Usage of "list" but only when "request" points to currently logged in user
+    // 3. Usage of "whois" or "isthere"
+    if !running_as_root && (
+
+    (action == "add" || action == "del") ||
+    (action == "update" &&
+    ( !output_chpass || !request_points_to_current_user || swcs.len()>1 || (swcs.len()==1 && !swcs.contains(&"pass".to_string())) )
+    ) ||
+    (action == "list" && !request_points_to_current_user)
+
+    )
+    {
+        eprintln!("You are not permitted to perform this operation!"); process::exit(1);
     }
 
 
@@ -189,10 +180,7 @@ fn main() {
                 let pass_probe1 = input::get("Password: ".to_string(), true).join(" ");
                 let pass_probe2 = input::get("Password: ".to_string(), true).join(" ");
                 if pass_probe1 == pass_probe2 {
-                    let mut hasher = Sha3_512::new();
-                    hasher.update(pass_probe1.as_bytes());
-                    let result = hasher.finalize();
-                    password.clone_from(&format!("{:X}", result));
+                    password = system::encrypt(&pass_probe1);
                 } 
                 else {
                     eprintln!("Passwords do not match! Exiting.");
@@ -203,10 +191,7 @@ fn main() {
             else {
                 eprintln!("Setting up passwords this way is insecure!");
                 eprintln!("Try using -pass without any value.");
-                let mut hasher = Sha3_512::new();
-                hasher.update(v.as_bytes());
-                let result = hasher.finalize();
-                password.clone_from(&format!("{:X}", result));
+                password = system::encrypt(&v);
             }
         }
         else if s == "expire" {

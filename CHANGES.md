@@ -143,15 +143,12 @@
 - REX: Add more functionality
 - DIV: Find divergent lines in files (NEW PROGRAM!)
 
-# Release 0.3.1:
-
-- HELP: View documentation
-- SCRIBUS: Generate documents from templates
-
 # Release unknown:
 
 # Waiting features
 
+- HELP: View documentation
+- SCRIBUS: Generate documents from templates
 - Translations
 - Standarised exit codes
 - Try to make all error messages as similiar as possible
