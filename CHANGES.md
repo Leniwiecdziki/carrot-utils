@@ -136,11 +136,17 @@
 
 - USERUTIL: Supported user description field, ability to remove users
 - USERUTIL: Ability to set and manage passwords with encryption, ability to update existing users
+- USERUTIL: Move some code to carrot_libs::system
+
+# Release 0.3.1:
+
+### Added on 13.05.2024
+
+- REX: Ability to check user's password match
 
 ### Waiting features:
 
 - DISKUTIL: Disk management (NEW PROGRAM!)
-- REX: Add more functionality
 - DIV: Find divergent lines in files (NEW PROGRAM!)
 
 # Release unknown:

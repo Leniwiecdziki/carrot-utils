@@ -101,7 +101,7 @@ fn main() {
     } 
     else {
         for u in &cfg.users {
-            if u.id == current_uid.try_into().unwrap() {
+            if u.id == current_uid {
                 output_chpass = u.can_change_password;
                 output_name.clone_from(&u.name);
             }
@@ -109,7 +109,7 @@ fn main() {
     };
     let request_is_number = request.parse::<u32>().is_ok();
     let request_points_to_current_user = if request_is_number {
-        request.parse::<u32>().unwrap() == current_uid.try_into().unwrap()
+        request.parse::<u32>().unwrap() == current_uid
     } else {
         request == output_name
     };
@@ -344,69 +344,69 @@ fn main() {
             let id = if swcs.contains(&"id".to_string()) { 
                 id
             } else { 
-                Some(user_to_update.clone()).unwrap().unwrap().id
+                user_to_update.clone().unwrap().id
             };
             let name = if swcs.contains(&"name".to_string()) {
                 name
             } else {
-                Some(user_to_update.clone()).unwrap().unwrap().name
+                user_to_update.clone().unwrap().name
             };
             // left groups unchanged
             let description = if swcs.contains(&"desc".to_string()) {
                 description
             } else {
-                Some(user_to_update.clone()).unwrap().unwrap().description
+                user_to_update.clone().unwrap().description
             };
             let password = if swcs.contains(&"pass".to_string()) {
                 password
             } else {
-                Some(user_to_update.clone()).unwrap().unwrap().password
+                user_to_update.clone().unwrap().password
             };
             // change the table bellow only if -pass is supplied
             let password_change_date = if swcs.contains(&"pass".to_string()) {
                 chrono::offset::Utc::now().timestamp()
             } else {
-                Some(user_to_update.clone()).unwrap().unwrap().password_change_date
+                user_to_update.clone().unwrap().password_change_date
             };
             let password_expiration_date = if swcs.contains(&"expire".to_string()) {
                 password_expiration_date
             } else {
-                Some(user_to_update.clone()).unwrap().unwrap().password_expiration_date
+                user_to_update.clone().unwrap().password_expiration_date
             };
             let can_change_password = if swcs.contains(&"chpass".to_string()) {
                 can_change_password
             } else {
-                Some(user_to_update.clone()).unwrap().unwrap().can_change_password
+                user_to_update.clone().unwrap().can_change_password
             };
             // left creation date unchanged
             let locked = if swcs.contains(&"lock".to_string()) {
                 locked
             } else {
-                Some(user_to_update.clone()).unwrap().unwrap().locked
+                user_to_update.clone().unwrap().locked
             };
             let lock_date = if swcs.contains(&"lockdate".to_string()) {
                 lock_date
             } else {
-                Some(user_to_update.clone()).unwrap().unwrap().lock_date
+                user_to_update.clone().unwrap().lock_date
             };
             let profile_dir = if swcs.contains(&"profile".to_string()) {
                 profile_dir
             } else {
-                Some(user_to_update.clone()).unwrap().unwrap().profile_dir
+                user_to_update.clone().unwrap().profile_dir
             };
             let shell = if swcs.contains(&"shell".to_string()) {
                 shell
             } else {
-                Some(user_to_update.clone()).unwrap().unwrap().shell
+                user_to_update.clone().unwrap().shell
             };
             // Append a new user
             copy.push( User {
                         id,
                         name,
-                        groups: Some(user_to_update.clone()).unwrap().unwrap().groups,
+                        groups: user_to_update.clone().unwrap().groups,
                         description,
                         password, password_change_date, password_expiration_date, can_change_password,
-                        creation_date: Some(user_to_update.clone()).unwrap().unwrap().creation_date,
+                        creation_date: user_to_update.clone().unwrap().creation_date,
                         locked, lock_date, profile_dir, shell,
                     } );
             // Create a new config object
