@@ -124,12 +124,21 @@ fn main() {
 
         // VERY IMPORTANT:
         // NO ONE but the root user should have the permission to use this program!
-        // The only exception is usage of "update" action with "-pass" BUT ONLY if
-        // "can_change_password" is set to "true" and "request" points to the
-        // currently logged in user.
-        if !running_as_root && (action != "update" || !output_chpass || !request_points_to_current_user)
+        // The only exception are:
+        // 1. Usage of "update" action with "-pass" BUT ONLY if "can_change_password" is set to "true" and "request" points to currently logged in user.
+        // 2. Usage of "list" but only when "request" points to currently logged in user
+        // 3. Usage of "whois" or "isthere"
+        if !running_as_root && (
+
+        (action == "add" || action == "del") ||
+        (action == "update" &&
+        ( !output_chpass || !request_points_to_current_user || swcs.len()>1 || (swcs.len()==1 && !swcs.contains(&"pass".to_string())) )
+        ) ||
+        (action == "list" && !request_points_to_current_user)
+
+        )
         {
-            eprintln!("You are not permitted to use this program!"); process::exit(1);
+            eprintln!("You are not permitted to perform this operation!"); process::exit(1);
         }
     }
 
