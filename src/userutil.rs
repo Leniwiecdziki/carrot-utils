@@ -72,6 +72,7 @@ fn main() {
 
     // Define some default settings for a user
     let mut id = 1000;
+    let mut name = "".to_string();
     let mut description = "".to_string();
     let mut password = "".to_string();
     let password_change_date = chrono::offset::Utc::now().timestamp();
@@ -91,7 +92,10 @@ fn main() {
         if v.is_empty() && (s=="id"||s=="desc"||s=="pass"||s=="expire"||s=="chpass"||s=="lock"||s=="lockdate"||s=="profile"||s=="shell") {
             eprintln!("This switch requires a value: {s}!"); process::exit(1); 
         }
-        if action != "add" && action != "del" && (s=="id"||s=="desc"||s=="pass"||s=="expire"||s=="chpass"||s=="lock"||s=="lockdate"||s=="profile"||s=="shell") {
+        if action != "add" && action != "del" && action != "update" && (s=="id"||s=="desc"||s=="pass"||s=="expire"||s=="chpass"||s=="lock"||s=="lockdate"||s=="profile"||s=="shell") {
+            eprintln!("Action \"{action}\" does not accept this switch: {s}!"); process::exit(1); 
+        }
+        if action != "update" && s=="name" {
             eprintln!("Action \"{action}\" does not accept this switch: {s}!"); process::exit(1); 
         }
 
@@ -104,6 +108,7 @@ fn main() {
                 Ok(e) => e,
             };
         }
+        else if s == "name" {name.clone_from(&v)}
         else if s == "desc" {description.clone_from(&v)}
         else if s == "pass" {
             todo!();
@@ -219,7 +224,7 @@ fn main() {
             }
             // Copy current user config
             let mut copy = cfg.users.clone();
-            // Find and remove a user with the name that is exact to the requested one 
+            // Find and remove a user with the name or ID that is exact to the requested one 
             let mut i = 0;
             while i < copy.len() {
                 if copy[i].name == request || copy[i].id.to_string() == request {
@@ -235,6 +240,112 @@ fn main() {
             // Add new contents
             confy::store_path(CONFIG, newconfig).unwrap();
 
+        },
+        "update" => {
+            let request_is_number = request.parse::<i64>().is_ok();
+            // Check if user is already added
+            if !isthere(&request, &cfg.users) {
+                eprintln!("User with name \"{}\" does not exist!", request);
+                process::exit(1);
+            }
+            if !isthere(&id.to_string(), &cfg.users) {
+                eprintln!("User with ID \"{}\" does not exist!", request);
+                process::exit(1);
+            }
+            // Copy current user config
+            let mut copy = cfg.users.clone();
+            let mut user_to_update = None;
+            // Find and a user with the name or ID that is exact to the requested one 
+            // Remove that match from users list
+            let mut i = 0;
+            while i < copy.len() {
+                if copy[i].name == request || copy[i].id.to_string() == request {
+                    user_to_update = Some(copy[i].clone());
+                    copy.remove(i);
+                } else {
+                    i+=1;
+                }
+            }
+            if user_to_update.is_none() {
+                eprintln!("This program contradicts itself! User was found in one part of the program and not in the other. This is a bug.");
+                process::exit(1);
+            }
+            // If user supplied some switch, use the value from switch
+            // if not, use values that are already defined for him/her/whatever
+            let id = if swcs.contains(&"id".to_string()) { 
+                id
+            } else { 
+                Some(user_to_update.clone()).unwrap().unwrap().id
+            };
+            let name = if swcs.contains(&"name".to_string()) {
+                name
+            } else {
+                Some(user_to_update.clone()).unwrap().unwrap().name
+            };
+            // left groups unchanged
+            let description = if swcs.contains(&"desc".to_string()) {
+                description
+            } else {
+                Some(user_to_update.clone()).unwrap().unwrap().description
+            };
+            let password = if swcs.contains(&"pass".to_string()) {
+                password
+            } else {
+                Some(user_to_update.clone()).unwrap().unwrap().password
+            };
+            // change the table bellow only if -pass is supplied
+            let password_change_date = if swcs.contains(&"pass".to_string()) {
+                chrono::offset::Utc::now().timestamp()
+            } else {
+                Some(user_to_update.clone()).unwrap().unwrap().password_change_date
+            };
+            let password_expiration_date = if swcs.contains(&"expire".to_string()) {
+                password_expiration_date
+            } else {
+                Some(user_to_update.clone()).unwrap().unwrap().password_expiration_date
+            };
+            let can_change_password = if swcs.contains(&"chpass".to_string()) {
+                can_change_password
+            } else {
+                Some(user_to_update.clone()).unwrap().unwrap().can_change_password
+            };
+            // left creation date unchanged
+            let locked = if swcs.contains(&"lock".to_string()) {
+                locked
+            } else {
+                Some(user_to_update.clone()).unwrap().unwrap().locked
+            };
+            let lock_date = if swcs.contains(&"lockdate".to_string()) {
+                lock_date
+            } else {
+                Some(user_to_update.clone()).unwrap().unwrap().lock_date
+            };
+            let profile_dir = if swcs.contains(&"profile".to_string()) {
+                profile_dir
+            } else {
+                Some(user_to_update.clone()).unwrap().unwrap().profile_dir
+            };
+            let shell = if swcs.contains(&"shell".to_string()) {
+                shell
+            } else {
+                Some(user_to_update.clone()).unwrap().unwrap().shell
+            };
+            // Append a new user
+            copy.push( User {
+                        id,
+                        name,
+                        groups: Some(user_to_update.clone()).unwrap().unwrap().groups,
+                        description,
+                        password, password_change_date, password_expiration_date, can_change_password,
+                        creation_date: Some(user_to_update.clone()).unwrap().unwrap().creation_date,
+                        locked, lock_date, profile_dir, shell,
+                    } );
+            // Create a new config object
+            let newconfig = UsersList {
+                users: copy,
+            };
+            // Add new contents
+            confy::store_path(CONFIG, newconfig).unwrap();
         },
         "list" => {
             for user in cfg.users {
