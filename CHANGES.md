@@ -147,3 +147,11 @@
 
 - HELP: View documentation
 - SCRIBUS: Generate documents from templates
+
+# Release unknown:
+
+# Waiting features
+
+- Translations
+- Standarised exit codes
+- Try to make all error messages as similiar as possible

@@ -8,7 +8,7 @@ use carrot_libs::input;
 
 fn ask(opt: &String) -> bool {
     let mut toclear:bool = false;
-    let input = input::get(format!("{}: Do you really want to delete this? [y/n]: ", opt));
+    let input = input::get(format!("{}: Do you really want to delete this? [y/n]: ", opt), false);
     if input.len() != 1 {
         println!("Sorry! I don't undestand your input.");
         ask(opt);

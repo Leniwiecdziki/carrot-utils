@@ -1,4 +1,4 @@
-use carrot_libs::args;
+use carrot_libs::{args,input};
 use std::process;
 use serde_derive::{Serialize, Deserialize};
 
@@ -70,6 +70,71 @@ fn main() {
     // Which user to edit? - this can sometimes be a user name or ID
     let request = opts[1].clone();
 
+    // Open users.toml for configuration
+    let cfg:UsersList = match confy::load_path(CONFIG) {
+        Err(e) => {
+            eprintln!("Failed to open configuration. Probably, you don't have sufficient permissions: {}", e);
+            process::exit(1);
+        },
+        Ok(e) => {
+            e
+        }
+    };
+
+    extern "C" {
+        fn geteuid() -> i32;
+    }
+    unsafe {
+        // Check current user ID
+        let current_uid = geteuid();
+        // Are we running as root?
+        let running_as_root = if current_uid == 0 {
+            true
+        }
+        else if current_uid == -1 {
+            eprintln!("Can't check current user identifier!");
+            process::exit(1);
+        }
+        else {
+            false
+        };
+        // If we're not running as root:
+        // check if we can change our password
+        // resolve user name
+        let mut output_chpass = false;
+        let mut output_name = "".to_string();
+        if running_as_root {
+            output_chpass = true;
+        } 
+        else {
+            for u in &cfg.users {
+                if u.id == current_uid.try_into().unwrap() {
+                    output_chpass = u.can_change_password;
+                    output_name.clone_from(&u.name);
+                }
+            }
+        };
+        let request_is_number = request.parse::<u32>().is_ok();
+        let request_points_to_current_user = if request_is_number {
+            request.parse::<u32>().unwrap() == current_uid.try_into().unwrap()
+        } else {
+            request == output_name
+        };
+
+        // VERY IMPORTANT:
+        // NO ONE but the root user should have the permission to use this program!
+        // The only exception is usage of "update" action with "-pass" BUT ONLY if
+        // "can_change_password" is set to "true" and "request" points to the
+        // currently logged in user.
+        dbg!(running_as_root, action == "update", output_chpass, request_points_to_current_user);
+        if !running_as_root && (action != "update" || !output_chpass ||
+        !request_points_to_current_user)
+        {
+            eprintln!("You are not permitted to use this program!"); process::exit(1);
+        }
+    }
+
+
     // Define some default settings for a user
     let mut id = 1000;
     let mut name = "".to_string();
@@ -89,7 +154,8 @@ fn main() {
         let s = swcs[index].clone();
         let v = vals[index].clone();
 
-        if v.is_empty() && (s=="id"||s=="desc"||s=="pass"||s=="expire"||s=="chpass"||s=="lock"||s=="lockdate"||s=="profile"||s=="shell") {
+
+        if v.is_empty() && (s=="id"||s=="name"||s=="desc"||s=="expire"||s=="chpass"||s=="lock"||s=="lockdate"||s=="profile"||s=="shell") {
             eprintln!("This switch requires a value: {s}!"); process::exit(1); 
         }
         if action != "add" && action != "del" && action != "update" && (s=="id"||s=="desc"||s=="pass"||s=="expire"||s=="chpass"||s=="lock"||s=="lockdate"||s=="profile"||s=="shell") {
@@ -111,7 +177,24 @@ fn main() {
         else if s == "name" {name.clone_from(&v)}
         else if s == "desc" {description.clone_from(&v)}
         else if s == "pass" {
-            todo!();
+            // If password is not passed in a value
+            if v.is_empty() {
+                let pass_probe1 = input::get("Password: ".to_string(), true).join(" ");
+                let pass_probe2 = input::get("Password: ".to_string(), true).join(" ");
+                if pass_probe1 == pass_probe2 {
+                   password.clone_from(&pass_probe1)
+                } 
+                else {
+                    eprintln!("Passwords do not match! Exiting.");
+                    process::exit(1);
+                }
+            }
+            // If password is being passed by the user in a value
+            else {
+                eprintln!("Setting up passwords this way is insecure!");
+                eprintln!("Try using -pass without any value.");
+                password.clone_from(&v);
+            }
         }
         else if s == "expire" {
             password_expiration_date = match v.parse::<i64>() {
@@ -156,17 +239,6 @@ fn main() {
         }
         index += 1;
     }
-
-    // Open users.toml for configuration
-    let cfg:UsersList = match confy::load_path(CONFIG) {
-        Err(e) => {
-            eprintln!("Failed to open configuration. Probably, you don't have sufficient permissions: {}", e);
-            process::exit(1);
-        },
-        Ok(e) => {
-            e
-        }
-    };
 
     // Get the action and do what is needed
     match action.as_str() {
@@ -242,7 +314,6 @@ fn main() {
 
         },
         "update" => {
-            let request_is_number = request.parse::<i64>().is_ok();
             // Check if user is already added
             if !isthere(&request, &cfg.users) {
                 eprintln!("User with name \"{}\" does not exist!", request);

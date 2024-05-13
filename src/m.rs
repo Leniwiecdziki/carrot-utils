@@ -327,7 +327,7 @@ fn rename(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&b
 
 fn question(opt: &PathBuf) -> bool {
     let mut toclear:bool = false;
-    let input = input::get(format!("{}: Do you really want to delete this? [y/n]: ", opt.display()));
+    let input = input::get(format!("{}: Do you really want to delete this? [y/n]: ", opt.display()), false);
     if input.len() != 1 {
         println!("Sorry! I don't undestand your input.");
         question(opt);
