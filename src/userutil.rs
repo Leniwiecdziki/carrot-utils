@@ -1,6 +1,7 @@
 use carrot_libs::{args,input};
 use std::process;
 use serde_derive::{Serialize, Deserialize};
+use sha3::{Digest, Sha3_512};
 
 // List of all users
 #[derive(Serialize, Deserialize, Debug)]
@@ -126,9 +127,7 @@ fn main() {
         // The only exception is usage of "update" action with "-pass" BUT ONLY if
         // "can_change_password" is set to "true" and "request" points to the
         // currently logged in user.
-        dbg!(running_as_root, action == "update", output_chpass, request_points_to_current_user);
-        if !running_as_root && (action != "update" || !output_chpass ||
-        !request_points_to_current_user)
+        if !running_as_root && (action != "update" || !output_chpass || !request_points_to_current_user)
         {
             eprintln!("You are not permitted to use this program!"); process::exit(1);
         }
@@ -153,7 +152,6 @@ fn main() {
     while index < swcs.len() {
         let s = swcs[index].clone();
         let v = vals[index].clone();
-
 
         if v.is_empty() && (s=="id"||s=="name"||s=="desc"||s=="expire"||s=="chpass"||s=="lock"||s=="lockdate"||s=="profile"||s=="shell") {
             eprintln!("This switch requires a value: {s}!"); process::exit(1); 
@@ -182,7 +180,10 @@ fn main() {
                 let pass_probe1 = input::get("Password: ".to_string(), true).join(" ");
                 let pass_probe2 = input::get("Password: ".to_string(), true).join(" ");
                 if pass_probe1 == pass_probe2 {
-                   password.clone_from(&pass_probe1)
+                    let mut hasher = Sha3_512::new();
+                    hasher.update(pass_probe1.as_bytes());
+                    let result = hasher.finalize();
+                    password.clone_from(&format!("{:X}", result));
                 } 
                 else {
                     eprintln!("Passwords do not match! Exiting.");
@@ -193,7 +194,10 @@ fn main() {
             else {
                 eprintln!("Setting up passwords this way is insecure!");
                 eprintln!("Try using -pass without any value.");
-                password.clone_from(&v);
+                let mut hasher = Sha3_512::new();
+                hasher.update(v.as_bytes());
+                let result = hasher.finalize();
+                password.clone_from(&format!("{:X}", result));
             }
         }
         else if s == "expire" {

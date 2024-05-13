@@ -135,10 +135,10 @@
 ### Added on 13.05.2024
 
 - USERUTIL: Supported user description field, ability to remove users
+- USERUTIL: Ability to set and manage passwords with encryption, ability to update existing users
 
 ### Waiting features:
 
-- USERUTIL: Ability to set and manage passwords, ability to update existing users
 - DISKUTIL: Disk management (NEW PROGRAM!)
 - REX: Add more functionality
 - DIV: Find divergent lines in files (NEW PROGRAM!)

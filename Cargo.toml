@@ -24,6 +24,7 @@ serde = "*"
 serde_derive = "*"
 confy = "*"
 chrono = "*"
+sha3 = "*"
 
 [dependencies.carrot_libs]
 path = "../carrot-libs"
