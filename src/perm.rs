@@ -57,10 +57,6 @@ fn main() {
     while index < opts.len() {
         let m = checkmode(&split, PathBuf::from(&opts[index]));
         let m_all = format!("{}{}{}{}", m.additional, m.user, m.group, m.other);
-        if m_all.contains('8') {
-            eprintln!("Incorrect permission mode!");
-            process::exit(1);
-        }
         if verbose {
             println!("Setting permission mode: {m_all}");
         }
@@ -79,12 +75,31 @@ fn main() {
 fn checkmode(input:&[&str], file:PathBuf) -> ModesTable {
     let prev_perms = fileinfo::perms(&file, true).unwrap();
 
+    let permtable0 = match unkinder::perms(input[0], true) {
+        Ok(a) => a,
+        Err(a) => {eprintln!("Failed to change permissions: {a}"); process::exit(1);} 
+    };
+    let permtable1 = match unkinder::perms(input[1], true) {
+        Ok(a) => a,
+        Err(a) => {eprintln!("Failed to change permissions: {a}"); process::exit(1);} 
+    };
+    let permtable2 = match unkinder::perms(input[2], true) {
+        Ok(a) => a,
+        Err(a) => {eprintln!("Failed to change permissions: {a}"); process::exit(1);} 
+    };
+    let permtable3 = match unkinder::perms(input[3], true) {
+        Ok(a) => a,
+        Err(a) => {eprintln!("Failed to change permissions: {a}"); process::exit(1);} 
+    };
+
     match input.len() {
         0 => { eprintln!("No modes!"); process::exit(1); },
         1 =>
             ModesTable {
                 user:
-                    if input[0] != "n" { unkinder::perms(input[0], true) }
+                    if input[0] != "n" { 
+                        permtable0
+                    }
                     else { prev_perms.1 },
                 group: prev_perms.2,
                 other: prev_perms.3,
@@ -93,10 +108,10 @@ fn checkmode(input:&[&str], file:PathBuf) -> ModesTable {
         2 => 
             ModesTable {
                 user:
-                    if input[0] != "n" { unkinder::perms(input[0], true) }
+                    if input[0] != "n" { permtable0 }
                     else { prev_perms.1 },
                 group:
-                    if input[1] != "n" { unkinder::perms(input[1], true) }
+                    if input[1] != "n" { permtable1 }
                     else { prev_perms.2 },
                 other: prev_perms.3,
                 additional: prev_perms.0,
@@ -105,13 +120,13 @@ fn checkmode(input:&[&str], file:PathBuf) -> ModesTable {
         3 => 
             ModesTable {
                 user:
-                    if input[0] != "n" { unkinder::perms(input[0], true) }
+                    if input[0] != "n" { permtable0 }
                     else { prev_perms.1 },
                 group:
-                    if input[1] != "n" { unkinder::perms(input[1], true) }
+                    if input[1] != "n" { permtable1 }
                     else { prev_perms.2 },
                 other: 
-                    if input[2] != "n" { unkinder::perms(input[2], true) }
+                    if input[2] != "n" { permtable2 }
                     else { prev_perms.3 },
                 additional: prev_perms.0,
             },
@@ -119,16 +134,16 @@ fn checkmode(input:&[&str], file:PathBuf) -> ModesTable {
         4 => 
             ModesTable {
                 user:
-                    if input[0] != "n" { unkinder::perms(input[0], true) }
+                    if input[0] != "n" { permtable0 }
                     else { prev_perms.1 },
                 group:
-                    if input[1] != "n" { unkinder::perms(input[1], true) }
+                    if input[1] != "n" { permtable1 }
                     else { prev_perms.2 },
                 other: 
-                    if input[2] != "n" { unkinder::perms(input[2], true) }
+                    if input[2] != "n" { permtable2 }
                     else { prev_perms.3 },
                 additional: 
-                    if input[3] != "n" { unkinder::perms(input[3], false) }
+                    if input[3] != "n" { permtable3 }
                     else { prev_perms.0 },
             },
 

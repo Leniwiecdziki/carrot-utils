@@ -129,10 +129,10 @@ fn main() {
             let additional = converted_perms_mode.chars().nth_back(3).unwrap();
             
             let (u,g,o,a) = if human {
-                (kinder::perms(user.to_digit(10).unwrap(), true),
-                kinder::perms(group.to_digit(10).unwrap(), true),
-                kinder::perms(others.to_digit(10).unwrap(), true),
-                kinder::perms(additional.to_digit(10).unwrap(), false))
+                (kinder::perms(user.to_digit(10).unwrap(), true).unwrap(),
+                kinder::perms(group.to_digit(10).unwrap(), true).unwrap(),
+                kinder::perms(others.to_digit(10).unwrap(), true).unwrap(),
+                kinder::perms(additional.to_digit(10).unwrap(), false).unwrap())
             }
             else {
                 (user.to_string(), group.to_string(), others.to_string(), additional.to_string())
