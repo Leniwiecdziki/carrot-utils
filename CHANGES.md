@@ -149,12 +149,20 @@
 - MD: atime, ctime, mtime functions are currently disabled
 - SEEK: Deprecated. Will be rewritten in the future.
 - *: Fix bugs caused by carrot-libs changes
-- USERUITL: Ability to show ID of the currently running user
+- USERUTIL: Ability to show ID of the currently running user
+- USERUTIL: Default values are taken from configuration file
+- USERUTIL: When adding new user, program tries to find neariest, non-reserved UID if it was not implicitly set by the user
 
 ### Waiting features:
 
+- USERUTIL: Make sure that password meets min/max length defined in settings
+- USERUTIL: Create user profile while adding a user
+- USERUTIL: Delete user profile while removing a user
+- USERUTIL: Ability to copy from default_profile_dir()
 - DISKUTIL: Disk management (NEW PROGRAM!)
+- GROUPUTIL: Manage groups on system (NEW PROGRAM!)
 - DIV: Find divergent lines in files (NEW PROGRAM!)
+- *: Migrate from 'crossterm' to carrot_libs::cli
 
 # Release unknown:
 
@@ -162,6 +170,7 @@
 
 - HELP: View documentation
 - SCRIBUS: Generate documents from templates
+- TTY: Terminal management
 - Translations
 - Standarised exit codes
 - Try to make all error messages as similiar as possible

@@ -143,18 +143,18 @@ fn main() {
 
 
     // Define some default settings for a user
-    let mut id = 1000;
+    let mut id = system::getpref_or_exit("default_user_pref", "minimal_uid").parse::<u32>().unwrap();
     let mut name = "".to_string();
     let mut description = "".to_string();
     let mut password = "".to_string();
     let password_change_date = chrono::offset::Utc::now().timestamp();
     let mut password_expiration_date = 0_i64;
-    let mut can_change_password = true;
+    let mut can_change_password = system::getpref_or_exit("default_user_pref", "can_change_password").parse::<bool>().unwrap();
     let creation_date = chrono::offset::Utc::now().timestamp();
-    let mut locked = false;
+    let mut locked = system::getpref_or_exit("default_user_pref", "locked").parse::<bool>().unwrap();
     let mut lock_date = 0_i64;
-    let mut profile_dir = format!("/home/{request}");
-    let mut shell = "/bin/rush".to_string();
+    let mut profile_dir = system::getpref_or_exit("default_user_pref", "profile_dir");
+    let mut shell = system::getpref_or_exit("default_user_pref", "shell");
     
     let mut index = 0;
     while index < swcs.len() {
@@ -266,15 +266,25 @@ fn main() {
                 eprintln!("User ID is not an accepted option while adding!");
                 process::exit(1);
             }
-            // Check if user is already added
+            // Check if user name is already reserved
             if isthere(&request, &cfg.users) {
                 eprintln!("The user name \"{}\" is already reserved!", request);
                 process::exit(1);
             }
-            if isthere(&id.to_string(), &cfg.users) {
-                eprintln!("The user ID \"{}\" is already reserved!", id);
-                process::exit(1);
+
+            // Check if user ID is already reserved
+            while isthere(&id.to_string(), &cfg.users) {
+                // Break if UID was implicitly set by the user
+                if swcs.contains(&"id".to_string()) {
+                    eprintln!("The user ID \"{}\" is already reserved!", id);
+                    process::exit(1);
+                }
+                // Find closest unused uid
+                else {
+                    id += 1;
+                }
             }
+            
             // Copy current user config
             let mut copy = cfg.users.clone();
             // Append a new user
