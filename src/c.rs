@@ -301,7 +301,7 @@ fn browsedir(src:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&b
 
 fn copy(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&bool) {
     let overwrite = if *ask {
-        match input::ask(&dest.to_string_lossy().to_string()) {
+        match input::ask(dest.to_string_lossy()) {
             Err(e) => {
                 eprintln!("Can't get user input: {}!", e);
                 process::exit(1);

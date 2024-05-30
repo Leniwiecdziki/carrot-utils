@@ -76,14 +76,14 @@ fn main() {
         Err(e) => {eprintln!("Error: {}", e); process::exit(1);},
     }
 
-    match input::get("Password: ".to_string(), true) {
+    match input::get("Password: ", true) {
         Err(e) => {
             eprintln!("Failed to get user input: {}!", e);
             process::exit(1);
         }
         Ok(ret) => {
             let pass = ret.join(" ");
-            match system::password_check(desired_uid, &pass) {
+            match system::password_check(desired_uid, pass) {
                 Err(e) => {
                     eprintln!("Failed to check passwords: {e}");
                     process::exit(1);

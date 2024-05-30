@@ -186,8 +186,8 @@ fn main() {
             // If password is not passed in a value
             if v.is_empty() {
                 // Get passwords
-                let pass_probe1 = input::get("Password: ".to_string(), true);
-                let pass_probe2 = input::get("Password: ".to_string(), true);
+                let pass_probe1 = input::get("Password: ", true);
+                let pass_probe2 = input::get("Password: ", true);
                 // Catch all possible errors
                 if pass_probe1.is_err() || pass_probe2.is_err() {
                     eprintln!("Failed to get user input!");
