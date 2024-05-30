@@ -56,8 +56,16 @@ fn main() {
     let opts = args::opts();
     let (swcs, vals) = args::swcs();
 
+    if opts.len() == 1 && opts[0] == "id" {
+        let current_uid = match system::current_user() {
+            Ok(e) => e,
+            Err(e) => {eprintln!("Error: {}", e); process::exit(1);},
+        };
+        println!("{current_uid}");
+        process::exit(0);
+    }
     if opts.len() < 2 {
-        eprintln!("Missing action and user name!");
+        eprintln!("Missing action and user ID/name!");
         process::exit(1);
     }
     if opts.len() > 2 {

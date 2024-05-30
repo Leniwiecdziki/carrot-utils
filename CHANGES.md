@@ -149,6 +149,7 @@
 - MD: atime, ctime, mtime functions are currently disabled
 - SEEK: Deprecated. Will be rewritten in the future.
 - *: Fix bugs caused by carrot-libs changes
+- USERUITL: Ability to show ID of the currently running user
 
 ### Waiting features:
 
