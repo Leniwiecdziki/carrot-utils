@@ -77,7 +77,7 @@ fn main() {
 }
 
 fn checkmode(input:&[&str], file:PathBuf) -> ModesTable {
-    let prev_perms = fileinfo::perms(&file).unwrap();
+    let prev_perms = fileinfo::perms(&file, true).unwrap();
 
     match input.len() {
         0 => { eprintln!("No modes!"); process::exit(1); },
@@ -160,7 +160,13 @@ fn changemode(path:&str, mode: &str, verbose:&bool) {
 
 fn browsedir(path:&Path, mode:&String, rec:&bool, verbose:&bool) {
     // List where all found files will be stored
-    let result = dir::browse(path);
+    let result = match dir::browse(path) {
+        Err(ret) => {
+            eprintln!("Can't get directory contents: {}", ret);
+            process::exit(1);
+        }
+        Ok(ret) => ret,
+    };
 
     // Add new elements to 'result'
     for r in &result {

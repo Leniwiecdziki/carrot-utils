@@ -164,7 +164,7 @@ fn main() {
             println!("{fieldname}: {value}");
         };
 
-        if fields_to_show.contains(&String::from("atime")) || show_all_fields {
+        /*if fields_to_show.contains(&String::from("atime")) || show_all_fields {
             let fieldname = if human { "Accessed" } else { "atime" };
             let time = command_to_match.atime();
             if !human {
@@ -212,6 +212,7 @@ fn main() {
                 println!("{fieldname}: {day}/{month}/{year} {hour}:{min}:{sec}");
             }
         };
+        */
 
 
         index += 1; 

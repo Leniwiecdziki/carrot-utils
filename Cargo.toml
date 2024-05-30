@@ -109,10 +109,6 @@ name = "rf"
 path = "src/rf.rs"
 
 [[bin]]
-name = "seek"
-path = "src/seek.rs"
-
-[[bin]]
 name = "shrink"
 path = "src/shrink.rs"
 

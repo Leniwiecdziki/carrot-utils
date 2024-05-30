@@ -76,19 +76,28 @@ fn main() {
         Err(e) => {eprintln!("Error: {}", e); process::exit(1);},
     }
 
-    let pass = input::get("Password: ".to_string(), true).join(" ");
-    match system::password_check(desired_uid, &pass) {
+    match input::get("Password: ".to_string(), true) {
         Err(e) => {
-            eprintln!("Failed to check passwords: {e}");
+            eprintln!("Failed to get user input: {}!", e);
             process::exit(1);
         }
-        Ok(result) => {
-            if result {
-                println!("Passwords match!");
-            } else {
-                println!("Passwords mismatch!");
-                process::exit(1);
+        Ok(ret) => {
+            let pass = ret.join(" ");
+            match system::password_check(desired_uid, &pass) {
+                Err(e) => {
+                    eprintln!("Failed to check passwords: {e}");
+                    process::exit(1);
+                }
+                Ok(result) => {
+                    if result {
+                        println!("Passwords match!");
+                    } else {
+                        println!("Passwords mismatch!");
+                        process::exit(1);
+                    }
+                }
             }
         }
+        
     }
 }

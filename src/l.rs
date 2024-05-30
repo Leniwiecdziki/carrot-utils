@@ -85,7 +85,13 @@ fn main() {
 }
 
 fn showdir(original_request:&Path, dir:&Path, hidden: &bool, rec:&bool, sort:&bool, color:&bool) {
-    let result = dir::browse(dir);
+    let result = match dir::browse(dir) {
+        Err(ret) => {
+            eprintln!("Can't get directory contents: {}", ret);
+            process::exit(1);
+        }
+        Ok(ret) => ret,
+    };
     let mut sorted_result = Vec::new();
     
     // For every element found in directory

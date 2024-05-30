@@ -144,6 +144,12 @@
 
 - REX: Ability to check user's password match
 
+### Added on 30.05.2024
+
+- MD: atime, ctime, mtime functions are currently disabled
+- SEEK: Deprecated. Will be rewritten in the future.
+- *: Fix bugs caused by carrot-libs changes
+
 ### Waiting features:
 
 - DISKUTIL: Disk management (NEW PROGRAM!)
@@ -158,3 +164,4 @@
 - Translations
 - Standarised exit codes
 - Try to make all error messages as similiar as possible
+- FIND: Search for objects in filesystem

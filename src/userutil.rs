@@ -177,10 +177,16 @@ fn main() {
         else if s == "pass" {
             // If password is not passed in a value
             if v.is_empty() {
-                let pass_probe1 = input::get("Password: ".to_string(), true).join(" ");
-                let pass_probe2 = input::get("Password: ".to_string(), true).join(" ");
-                if pass_probe1 == pass_probe2 {
-                    password = system::encrypt(&pass_probe1);
+                // Get passwords
+                let pass_probe1 = input::get("Password: ".to_string(), true);
+                let pass_probe2 = input::get("Password: ".to_string(), true);
+                // Catch all possible errors
+                if pass_probe1.is_err() || pass_probe2.is_err() {
+                    eprintln!("Failed to get user input!");
+                    process::exit(1);
+                };
+                if pass_probe1.clone().unwrap() == pass_probe2.unwrap() {
+                    password = system::encrypt(&pass_probe1.clone().unwrap().join(" "));
                 } 
                 else {
                     eprintln!("Passwords do not match! Exiting.");

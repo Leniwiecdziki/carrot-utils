@@ -8,21 +8,6 @@ use rand::Rng;
 use carrot_libs::args;
 use carrot_libs::input;
 
-fn ask(opt: &String) -> bool {
-    let mut toclear:bool = false;
-    let input = input::get(format!("{}: Do you really want to delete this? [y/n]: ", opt), false);
-    if input.len() != 1 {
-        println!("Sorry! I don't undestand your input.");
-        ask(opt);
-    }
-    let lowercased_input = input[0].trim().to_lowercase();
-    if lowercased_input == "y" || lowercased_input == "yes" { toclear = true; }
-    else if lowercased_input == "n" || lowercased_input == "no" { toclear = false; }
-    else { println!("Sorry! I don't undestand your input."); ask(opt); }
-
-    toclear
-}
-
 fn parselen(lenght:&String) -> u64 {
     match lenght.parse::<u64>() {
         Err(e) => {
@@ -64,7 +49,13 @@ fn main() {
         }
         if s == "a" || s == "ask" {
             if !v.is_empty() { eprintln!("{s}: This switch doesn't accept a value!"); process::exit(1); };
-            toclear = ask(&opts[index]);
+            toclear = match input::ask(&opts[index]) {
+                Err(e) => {
+                    eprintln!("Can't get user input: {}!", e);
+                    process::exit(1);
+                },
+                Ok(e) => e
+            };
         }
         if s == "r" || s == "random" {
             if !v.is_empty() { eprintln!("{s}: This switch doesn't accept a value!"); process::exit(1); };

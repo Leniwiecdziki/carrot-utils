@@ -277,7 +277,15 @@ fn browsedir(src:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&b
         process::exit(1);
     };
     // Contents of a directory that needs to be copied
-    let srclist = dir::browse(&PathBuf::from(src));
+    let srclist = match dir::browse(&PathBuf::from(src)) {
+        Err(e) => {
+            eprintln!("{}: Failed to browse a directory: {}", dest.to_string_lossy(), e);
+            process::exit(1);
+        }
+        Ok(ret) => {
+            ret
+        }
+    };
 
     for element in srclist {
         let stripped_src = element.strip_prefix(src).expect("Copying failed when program tried to strip destination prefix!");
@@ -293,7 +301,13 @@ fn browsedir(src:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&b
 
 fn copy(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&bool) {
     let overwrite = if *ask {
-        question(dest)
+        match input::ask(&dest.to_string_lossy().to_string()) {
+            Err(e) => {
+                eprintln!("Can't get user input: {}!", e);
+                process::exit(1);
+            },
+            Ok(e) => e
+        }
     }
     else {
         *overwrite
@@ -308,19 +322,4 @@ fn copy(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&boo
     else {
         eprintln!("{}: Overwriting is disabled! Refusing to use this destination!", dest.display())
     };
-}
-
-fn question(opt: &PathBuf) -> bool {
-    let mut toclear:bool = false;
-    let input = input::get(format!("{}: Do you really want to delete this? [y/n]: ", opt.display()), false);
-    if input.len() != 1 {
-        println!("Sorry! I don't undestand your input.");
-        question(opt);
-    }
-    let lowercased_input = input[0].trim().to_lowercase();
-    if lowercased_input == "y" || lowercased_input == "yes" { toclear = true; }
-    else if lowercased_input == "n" || lowercased_input == "no" { toclear = false; }
-    else { println!("Sorry! I don't undestand your input."); question(opt); }
-
-    toclear
 }

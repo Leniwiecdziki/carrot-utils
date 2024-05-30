@@ -130,7 +130,13 @@ fn changeown(path:&str, user:&Option<u32>, group:&Option<u32>, verbose:&bool, li
 
 fn browsedir(path:&Path, user:&Option<u32>, group:&Option<u32>, rec:&bool, verbose:&bool, link:&bool) {
     // List where all found files will be stored
-    let result = dir::browse(path);
+    let result = match dir::browse(path) {
+        Err(ret) => {
+            eprintln!("Can't get directory contents: {}", ret);
+            process::exit(1);
+        }
+        Ok(ret) =>ret,
+    };
 
     // Add new elements to 'result'
     for r in &result {

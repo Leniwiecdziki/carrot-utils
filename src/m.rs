@@ -277,23 +277,37 @@ fn browsedir(src:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&b
         process::exit(1);
     };
     // Contents of a directory that needs to be moved
-    let srclist = dir::browse(&PathBuf::from(src));
+    let srclist = match dir::browse(&PathBuf::from(src)) {
+        Err(e) => {
+            eprintln!("{}: Failed to browse a directory: {}", dest.to_string_lossy(), e);
+            process::exit(1);
+        }
+        Ok(ret) => {
+            ret
+        }
+    };
 
     for element in srclist {
-        let stripped_src = element.strip_prefix(src).expect("Moving failed when program tried to strip destination prefix!");
-        let move_here = dest.join(stripped_src);
+        let stripped_src = element.strip_prefix(src).expect("Copying failed when program tried to strip destination prefix!");
+        let copy_here = dest.join(stripped_src);
         if element.is_dir() {
-            browsedir(&element, &move_here, verbose, overwrite, ask);
+            browsedir(&element, &copy_here, verbose, overwrite, ask);
         }
         else {
-            rename(&element, &move_here, verbose, overwrite, ask);
+            rename(&element, &copy_here, verbose, overwrite, ask);
         };
     }
 }
 
 fn rename(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&bool) {
     let overwrite = if *ask {
-        question(dest)
+        match input::ask(&dest.to_string_lossy().to_string()) {
+            Err(e) => {
+                eprintln!("Can't get user input: {}!", e);
+                process::exit(1);
+            },
+            Ok(e) => e
+        }
     }
     else {
         *overwrite
@@ -323,19 +337,4 @@ fn rename(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&b
     else {
         eprintln!("{}: Overwriting is disabled! Refusing to use this destination!", dest.display())
     };
-}
-
-fn question(opt: &PathBuf) -> bool {
-    let mut toclear:bool = false;
-    let input = input::get(format!("{}: Do you really want to delete this? [y/n]: ", opt.display()), false);
-    if input.len() != 1 {
-        println!("Sorry! I don't undestand your input.");
-        question(opt);
-    }
-    let lowercased_input = input[0].trim().to_lowercase();
-    if lowercased_input == "y" || lowercased_input == "yes" { toclear = true; }
-    else if lowercased_input == "n" || lowercased_input == "no" { toclear = false; }
-    else { println!("Sorry! I don't undestand your input."); question(opt); }
-
-    toclear
 }
