@@ -157,11 +157,10 @@
 
 ### Added on 01.06.2024
 
-- USERUTIL: Make sure that password meets min/max length defined in settings, create user profile while adding a user, ability to copy from default_profile_dir()
+- USERUTIL: Make sure that password meets min/max length defined in settings, create user profile while adding a user, ability to copy from default_profile_dir(), delete user profile while removing a user
 
 ### Waiting features:
 
-- USERUTIL: Delete user profile while removing a user
 - DISKUTIL: Disk management (NEW PROGRAM!)
 - GROUPUTIL: Manage groups on system (NEW PROGRAM!)
 - DIV: Find divergent lines in files (NEW PROGRAM!)

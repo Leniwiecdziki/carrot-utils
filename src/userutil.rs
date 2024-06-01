@@ -155,6 +155,8 @@ fn main() {
     let mut can_change_password = system::getpref_or_exit("default_user_pref", "can_change_password").parse::<bool>().unwrap();
     let creation_date = chrono::offset::Utc::now().timestamp();
     let mut locked = system::getpref_or_exit("default_user_pref", "locked").parse::<bool>().unwrap();
+    let mut create_profile = system::getpref_or_exit("default_user_pref", "create_profile").parse::<bool>().unwrap();
+    let mut delete_profile = false;
     let mut lock_date = 0_i64;
     let mut profile_dir = system::getpref_or_exit("default_user_pref", "profile_dir");
     let mut shell = system::getpref_or_exit("default_user_pref", "shell");
@@ -167,10 +169,13 @@ fn main() {
         if v.is_empty() && (s=="id"||s=="name"||s=="desc"||s=="expire"||s=="chpass"||s=="lock"||s=="lockdate"||s=="profile"||s=="shell") {
             eprintln!("This switch requires a value: {s}!"); process::exit(1); 
         }
+        if !v.is_empty() && (s=="p"||s=="P"||s=="d") {
+            eprintln!("This switch does not accept any value: {s}!"); process::exit(1); 
+        }
         if action != "add" && action != "del" && action != "update" && (s=="id"||s=="desc"||s=="pass"||s=="expire"||s=="chpass"||s=="lock"||s=="lockdate"||s=="profile"||s=="shell") {
             eprintln!("Action \"{action}\" does not accept this switch: {s}!"); process::exit(1); 
         }
-        if action != "update" && s=="name" {
+        if action != "update" && s=="name" || action != "add" && (s=="p"||s=="P") || action != "del" && s=="d" {
             eprintln!("Action \"{action}\" does not accept this switch: {s}!"); process::exit(1); 
         }
 
@@ -265,6 +270,16 @@ fn main() {
         }
         else if s == "profile" {profile_dir.clone_from(&v)}
         else if s == "shell" {shell.clone_from(&v)}
+
+        else if s == "p" {
+            create_profile = true;
+        }
+        else if s == "P" {
+            create_profile = false;
+        }
+        else if s == "d" {
+            delete_profile = true;
+        }
         else {
             eprintln!("Unknown switch: {s}");
         }
@@ -324,19 +339,22 @@ fn main() {
             confy::store_path(CONFIG, newconfig).unwrap();
 
             // Create profile directory
-            let profile_dir = format!("{}/{}", profile_dir.clone(), request.clone());
-            if let Err(e) = fs::create_dir_all(profile_dir.clone()) {
-                eprintln!("{}: Failed to create user profile directory!: {}", profile_dir, e.kind());
-                eprintln!("Created a user without a home directory!");
-                process::exit(1);
-            };
-            let def_prof = system::getpref_or_exit("default_user_pref", "default_profile_dir");
+            if create_profile {
+                let profile_dir = format!("{}/{}", profile_dir.clone(), request.clone());
+                if let Err(e) = fs::create_dir_all(profile_dir.clone()) {
+                    eprintln!("{}: Failed to create user profile directory!: {}", profile_dir, e.kind());
+                    eprintln!("Created a user without a home directory!");
+                    process::exit(1);
+                };
+                let def_prof = system::getpref_or_exit("default_user_pref", "default_profile_dir");
 
-            if let Err(e) = copy_dir_all(def_prof, profile_dir.clone()) {
-                eprintln!("{}: Copying from default profile to a user profile failed: {}!", profile_dir, e.kind());
-                eprintln!("Created a user with empty home directory!");
-                process::exit(1);
-            };
+                if let Err(e) = copy_dir_all(def_prof, profile_dir.clone()) {
+                    eprintln!("{}: Copying from default profile to a user profile failed: {}!", profile_dir, e.kind());
+                    eprintln!("Created a user with empty home directory!");
+                    process::exit(1);
+                };
+            }
+            
         },
         "del" => {
             // This is pretty much self explanatory
@@ -368,6 +386,15 @@ fn main() {
             // Add new contents
             confy::store_path(CONFIG, newconfig).unwrap();
 
+            // Remove profile directory
+            if delete_profile {
+                let profile_dir = format!("{}/{}", profile_dir.clone(), request.clone());
+                if let Err(e) = fs::remove_dir_all(profile_dir.clone()) {
+                    eprintln!("{}: Failed to remove user profile directory!: {}", profile_dir, e.kind());
+                    eprintln!("User was removed, but not it's profile!");
+                    process::exit(1);
+                };
+            }
         },
         "update" => {
             // Check if user is already added
