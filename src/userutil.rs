@@ -1,5 +1,8 @@
 use carrot_libs::{args,input,system};
 use std::process;
+use std::fs;
+use std::io;
+use std::path::Path;
 use serde_derive::{Serialize, Deserialize};
 
 // This sctructure defined typical list of all users
@@ -306,12 +309,12 @@ fn main() {
             // Append a new user
             copy.push( User {
                         id,
-                        name: request,
+                        name: request.clone(),
                         groups: Vec::from([]),
                         description,
                         password, password_change_date, password_expiration_date, can_change_password,
                         creation_date,
-                        locked, lock_date, profile_dir, shell,
+                        locked, lock_date, profile_dir: profile_dir.clone(), shell,
                     } );
             // Create a new config object
             let newconfig = UsersList {
@@ -319,6 +322,21 @@ fn main() {
             };
             // Add new contents
             confy::store_path(CONFIG, newconfig).unwrap();
+
+            // Create profile directory
+            let profile_dir = format!("{}/{}", profile_dir.clone(), request.clone());
+            if let Err(e) = fs::create_dir_all(profile_dir.clone()) {
+                eprintln!("{}: Failed to create user profile directory!: {}", profile_dir, e.kind());
+                eprintln!("Created a user without a home directory!");
+                process::exit(1);
+            };
+            let def_prof = system::getpref_or_exit("default_user_pref", "default_profile_dir");
+
+            if let Err(e) = copy_dir_all(def_prof, profile_dir.clone()) {
+                eprintln!("{}: Copying from default profile to a user profile failed: {}!", profile_dir, e.kind());
+                eprintln!("Created a user with empty home directory!");
+                process::exit(1);
+            };
         },
         "del" => {
             // This is pretty much self explanatory
@@ -491,4 +509,18 @@ fn isthere(request:&String, users_list:&[User]) -> bool {
         }
     }
     false
+}
+
+fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
+    fs::create_dir_all(&dst)?;
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let ty = entry.file_type()?;
+        if ty.is_dir() {
+            copy_dir_all(entry.path(), dst.as_ref().join(entry.file_name()))?;
+        } else {
+            fs::copy(entry.path(), dst.as_ref().join(entry.file_name()))?;
+        }
+    }
+    Ok(())
 }
