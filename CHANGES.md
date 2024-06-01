@@ -153,9 +153,14 @@
 - USERUTIL: Default values are taken from configuration file
 - USERUTIL: When adding new user, program tries to find neariest, non-reserved UID if it was not implicitly set by the user
 
-### Waiting features:
+# Release 0.3.2:
+
+### Added on 01.06.2024
 
 - USERUTIL: Make sure that password meets min/max length defined in settings
+
+### Waiting features:
+
 - USERUTIL: Create user profile while adding a user
 - USERUTIL: Delete user profile while removing a user
 - USERUTIL: Ability to copy from default_profile_dir()

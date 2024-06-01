@@ -187,12 +187,28 @@ fn main() {
             if v.is_empty() {
                 // Get passwords
                 let pass_probe1 = input::get("Password: ", true);
-                let pass_probe2 = input::get("Password: ", true);
+                let pass_probe2 = input::get("Password (once again): ", true);
                 // Catch all possible errors
                 if pass_probe1.is_err() || pass_probe2.is_err() {
                     eprintln!("Failed to get user input!");
                     process::exit(1);
                 };
+                let min_allowed_pass_len = system::getpref_or_exit("default_user_pref", "password_minimum_len").parse::<u64>().unwrap();
+                let max_allowed_pass_len = system::getpref_or_exit("default_user_pref", "password_maximum_len").parse::<u64>().unwrap();
+                if (pass_probe1.clone().unwrap().len() as u64) < min_allowed_pass_len ||
+                (pass_probe2.clone().unwrap().len() as u64) < min_allowed_pass_len 
+                {
+                    eprintln!("System admin requires your password to have at least {} characters!", min_allowed_pass_len);
+                    process::exit(1);
+                }
+
+                if (pass_probe1.clone().unwrap().len() as u64) > max_allowed_pass_len ||
+                (pass_probe2.clone().unwrap().len() as u64) > max_allowed_pass_len 
+                {
+                    eprintln!("System admin requires your password to have up to {} characters!", max_allowed_pass_len);
+                    process::exit(1);
+                }
+
                 if pass_probe1.clone().unwrap() == pass_probe2.unwrap() {
                     password = system::encrypt(&pass_probe1.clone().unwrap().join(" "));
                 } 
