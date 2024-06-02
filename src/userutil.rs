@@ -116,6 +116,11 @@ fn main() {
             Err(e) => {eprintln!("Error: {}", e); process::exit(1);},
         };
         match opts[0].as_str() {
+            // Init is an undocumented option that is used by carrotOS installer to save a configuration file in
+            // CONFIG_LOCATION_USERS if it doesn't exist
+            "init" => {
+                confy::store_path(CONFIG_LOCATION_USERS, UsersList::default()).unwrap();
+            }
             "id" => {
                 println!("{current_uid_real}");
                 println!("{current_uid_effect}");
@@ -217,6 +222,7 @@ fn main() {
         }
     };
 
+    // Get default configuration for newly created users
     let mut id = defconfig_for_fresh_users.minimal_uid;
     let mut name = "".to_string();
     let mut description = "".to_string();
@@ -237,15 +243,20 @@ fn main() {
         let s = swcs[index].clone();
         let v = vals[index].clone();
 
+        // Switches that req a value
         if v.is_empty() && (s=="id"||s=="name"||s=="desc"||s=="expire"||s=="chpass"||s=="lock"||s=="lockdate"||s=="profile"||s=="shell") {
             eprintln!("This switch requires a value: {s}!"); process::exit(1); 
         }
+        // Switches that do not require any value
         if !v.is_empty() && (s=="p"||s=="P"||s=="d") {
             eprintln!("This switch does not accept any value: {s}!"); process::exit(1); 
         }
+        // -id, -desc, -pass, -expire, -chpass, -lock, -lockdate, -profile and -shell can be used only with add, del or update
         if action != "add" && action != "del" && action != "update" && (s=="id"||s=="desc"||s=="pass"||s=="expire"||s=="chpass"||s=="lock"||s=="lockdate"||s=="profile"||s=="shell") {
             eprintln!("Action \"{action}\" does not accept this switch: {s}!"); process::exit(1); 
         }
+        // Allow -p and -P only with "add"
+        // -d is only for "del"
         if action != "update" && s=="name" || action != "add" && (s=="p"||s=="P") || action != "del" && s=="d" {
             eprintln!("Action \"{action}\" does not accept this switch: {s}!"); process::exit(1); 
         }
@@ -273,14 +284,16 @@ fn main() {
                     process::exit(1);
                 };
 
+                // Check if password lenght fits in system administrator regulations
                 let min_allowed_pass_len = defconfig_for_fresh_users.password_minimum_len;
                 let max_allowed_pass_len = defconfig_for_fresh_users.password_maximum_len;
                 let p1_len = pass_probe1.clone().unwrap().join(" ").chars().count() as u64;
                 let p2_len = pass_probe2.clone().unwrap().join(" ").chars().count() as u64;
 
+                // If min_allowed_pass or max_allowed[...] is set to zero - there is no password lenght requirement
                 if min_allowed_pass_len != 0 && (p1_len < min_allowed_pass_len-1 || p2_len < min_allowed_pass_len-1)
                 {
-                    eprintln!("System admin requires your password to have at least {} characters! {p1_len},{p2_len}", min_allowed_pass_len);
+                    eprintln!("System admin requires your password to have at least {} characters!", min_allowed_pass_len);
                     process::exit(1);
                 }
 
@@ -290,6 +303,7 @@ fn main() {
                     process::exit(1);
                 }
 
+                // Check if passwords are equal
                 if pass_probe1.clone().unwrap() == pass_probe2.unwrap() {
                     password = system::encrypt(&pass_probe1.clone().unwrap().join(" "));
                 } 
@@ -298,7 +312,7 @@ fn main() {
                     process::exit(1);
                 }
             }
-            // If password is being passed by the user in a value
+            // If password is being passed by the user in a value and not in the secure prompt...
             else {
                 eprintln!("Setting up passwords this way is insecure!");
                 eprintln!("Try using -pass without any value.");
@@ -361,9 +375,6 @@ fn main() {
 
     // Get the action and do what is needed
     match action.as_str() {
-        "init" => {
-            confy::store_path(CONFIG_LOCATION_USERS, UsersList::default()).unwrap();
-        }
         "add" => {
             // If the requested content is a number - typically this means that user wants to
             // create a user giving only ID. This is impossible to do.
@@ -499,7 +510,7 @@ fn main() {
                 }
             }
             if user_to_update.is_none() {
-                panic!("This program contradicts itself! User was found in one part of the program and not in the other. This is a bug.");
+                panic!("Program's logic contradicts itself! User was found in one part of the program and not in the other. This is a bug.");
             }
             // If user supplied some switch, use the value from switch
             // if not, use values that are already defined for him/her/whatever

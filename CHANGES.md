@@ -161,6 +161,13 @@
 - USERUTIL: Ability to show real/effective user ID
 - REX: Ability to run commands
 
+# Release 0.3.3:
+
+### Added on 02.06.2024
+
+- REX: Fixed an issue that caused REX not to pass arguments starting with "-" to executed programs
+- REX: Do not ask for password when using REX to change EUID to the current EUID
+
 ### Waiting features:
 
 - DISKUTIL: Disk management (NEW PROGRAM!)

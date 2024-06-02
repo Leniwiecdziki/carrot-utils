@@ -52,7 +52,7 @@ checksum = "79296716171880943b8470b5f8d03aa55eb2e645a4874bdbb28adb49162e012c"
 
 [[package]]
 name = "carrot_libs"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "crossterm",
  "sha3",
@@ -60,7 +60,7 @@ dependencies = [
 
 [[package]]
 name = "carrot_utils"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "carrot_libs",
  "chrono",

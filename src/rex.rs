@@ -1,8 +1,7 @@
 use carrot_libs::{args,input,system};
-use std::os::raw::c_int;
-use std::process;
-use std::io;
 use std::io::Write;
+use std::{io, os::raw::c_int};
+use std::process;
 use std::collections::HashMap;
 use serde_derive::{Serialize, Deserialize};
 
@@ -38,6 +37,7 @@ impl std::default::Default for Rex {
 pub const CONFIG_LOCATION_REX:&str = "/etc/rex.toml";
 
 fn main() {
+    let args = args::args();
     let opts = args::opts();
     let (swcs, vals) = args::swcs();
 
@@ -45,10 +45,47 @@ fn main() {
         eprintln!("No commands to execute!");
         process::exit(1);
     }
+
+    // Find out, where the first OPTION is defined in arguments
+    // excluding argument number 0 which is a program's name
+    let mut index_of_first_opt = 0;
+    for (i, a) in args[1..].iter().enumerate() {
+        // WARNING: enumerate() counts from 0!
+        println!("{}: {}", i+1, a);
+        if !a.starts_with('-') {
+            index_of_first_opt = i+1;
+            // Break after the first possible occurence
+            break;
+        }
+    }
+
+    // Find out, where the first SWITCH is defined in arguments
+    // excluding argument number 0 which is a program's name
+    let mut index_of_first_swc = 0;
+    for (i, a) in args[1..].iter().enumerate() {
+        if a.starts_with('-') {
+            index_of_first_swc = i+1;
+            break;
+        }
+    }
+
+    // The program is built in the way that requires user to enter all switches first!
+    // Options have to be defined later.
+    // This is bad: rex page /private_content -u=1001 -g=1002 (-u=1001 and -g=1002 will be passed to page)
+    // This is ok: rex -u=1001 -g=1002 page /private_content
+
+    // This is caused by the fact, that REX have to send some switches to the executed program itself
+    // Otherwise, something like "rex echo -ne hello" would be impossible to run with this tool.
+
+    // That is the reason why switches should be defined before any other option
+
     let mut desired_uid = 0;
     let mut desired_gid = 0;
     let mut index = 0;
-    while index < swcs.len() {
+
+    let there_are_switches_before_options = index_of_first_swc < index_of_first_opt;
+
+    while index < swcs.len() && there_are_switches_before_options {
         let s = &swcs[index];
         let v = &vals[index];
 
@@ -119,6 +156,7 @@ fn main() {
         }
     };
 
+    // If REX is being used to change EUID to a currently used EUID - do not prompt for a password.
     match input::get("Password: ", true) {
         Err(e) => {
             eprintln!("Failed to get user input: {}!", e);
@@ -133,20 +171,24 @@ fn main() {
                 }
                 Ok(result) => {
                     if result {
-                        io::stdout().flush().unwrap();
-                        if opts.len() == 1 {
-                            process::Command::new(&opts[0]).spawn().unwrap().wait_with_output().unwrap();
-                        } else {
-                            process::Command::new(&opts[0]).args(&opts[1..]).spawn().unwrap().wait_with_output().unwrap();
-                        }
-                        // Flush stdout
+                        exec(&args[index_of_first_opt..]);
                     } else {
-                        println!("What a miss!");
+                        println!("Incorrect password!");
                         process::exit(1);
                     }
                 }
             }
         }
         
+    }
+}
+
+fn exec(args:&[String]) {
+    // Flush terminal for commands without newline character at the end
+    io::stdout().flush().unwrap();
+    if args.len() == 1 {
+        process::Command::new(&args[0]).spawn().unwrap().wait_with_output().unwrap();
+    } else {
+        process::Command::new(&args[0]).args(&args[1..]).spawn().unwrap().wait_with_output().unwrap();
     }
 }
