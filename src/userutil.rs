@@ -5,6 +5,12 @@ use std::io;
 use std::path::Path;
 use serde_derive::{Serialize, Deserialize};
 
+/*
+This defines structures for configuration files and stores their default values.
+Make changes to these parameters with caution because MANY of packages in carrot-utils may depend on
+contents below
+*/
+
 // This sctructure defined typical list of all users
 #[derive(Serialize, Deserialize, Debug)]
 struct UsersList {
@@ -30,6 +36,7 @@ struct User {
 }
 
 // Default settings for "UsersList"
+// Stores default list of users on system
 impl ::std::default::Default for UsersList {
     fn default() -> Self {
         Self {
@@ -53,18 +60,72 @@ impl ::std::default::Default for UsersList {
         }
     }
 }
-const CONFIG:&str = "/etc/users.toml";
+const CONFIG_LOCATION_USERS:&str = "/etc/users.toml";
+
+// And this is a structure for default_user_pref configuration
+// Stores default settings for newly created users
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct DefaultUserPref {
+    pub minimal_uid: u32,
+    pub minimal_gid: u32,
+    pub password_minimum_len: u64,
+    pub password_maximum_len: u64,
+    pub check_capitalisation: bool,
+    pub check_numbers: bool,
+    pub check_special_chars: bool,
+    pub can_change_password: bool,
+    pub locked: bool,
+    pub create_profile: bool,
+    pub default_profile_dir: String,
+    pub profile_dir: String,
+    pub shell: String,
+}
+// Default settings for "DefaultUserPref"
+impl std::default::Default for DefaultUserPref {
+    fn default() -> Self {
+        Self {
+            minimal_uid: 1000,
+            minimal_gid: 1000,
+            password_minimum_len: 8,
+            password_maximum_len: 0,
+            check_capitalisation: true,
+            check_numbers: true,
+            check_special_chars: false,
+            can_change_password: true,
+            locked: false,
+            create_profile: true,
+            default_profile_dir: String::from("/etc/default_profile/"),
+            profile_dir: String::from("/home/"),
+            shell: String::from("/bin/rush"),
+        }
+    }
+}
+pub const CONFIG_LOCATION_DEFAULT_USER_PREF:&str = "/etc/default_user_pref.toml";
 
 fn main() {
     let opts = args::opts();
     let (swcs, vals) = args::swcs();
 
-    if opts.len() == 1 && opts[0] == "id" {
-        let current_uid = match system::current_user() {
+    if opts.len() == 1 && (opts[0] == "id" || opts[0] == "idreal" || opts[0] == "ideffect") {
+        let current_uid_effect = match system::current_user_effective() {
             Ok(e) => e,
             Err(e) => {eprintln!("Error: {}", e); process::exit(1);},
         };
-        println!("{current_uid}");
+        let current_uid_real = match system::current_user_real() {
+            Ok(e) => e,
+            Err(e) => {eprintln!("Error: {}", e); process::exit(1);},
+        };
+        match opts[0].as_str() {
+            "id" => {
+                println!("{current_uid_real}");
+                println!("{current_uid_effect}");
+            }
+            "idreal" => println!("{current_uid_real}"),
+            "ideffect" => println!("{current_uid_effect}"),
+            _ => {
+                panic!("The programs logic contadicts itself!");
+            }
+        }
         process::exit(0);
     }
     if opts.len() < 2 {
@@ -82,7 +143,7 @@ fn main() {
     let request = opts[1].clone();
 
     // Open users.toml for configuration
-    let cfg:UsersList = match confy::load_path(CONFIG) {
+    let users_list:UsersList = match confy::load_path(CONFIG_LOCATION_USERS) {
         Err(e) => {
             eprintln!("Failed to open configuration. Probably, you don't have sufficient permissions: {}", e);
             process::exit(1);
@@ -93,12 +154,12 @@ fn main() {
     };
 
     // Check current user ID
-    let current_uid = match system::current_user() {
+    let current_uid = match system::current_user_real() {
         Ok(e) => e,
         Err(e) => {eprintln!("Error: {}", e); process::exit(1);},
     };
     // Are we running as root?
-    let running_as_root = match system::isroot() {
+    let running_as_root = match system::isroot_real() {
         Ok(e) => e,
         Err(e) => {eprintln!("Error: {}", e); process::exit(1);},
     };
@@ -111,7 +172,7 @@ fn main() {
         output_chpass = true;
     } 
     else {
-        for u in &cfg.users {
+        for u in &users_list.users {
             if u.id == current_uid {
                 output_chpass = u.can_change_password;
                 output_name.clone_from(&u.name);
@@ -146,20 +207,30 @@ fn main() {
 
 
     // Define some default settings for a user
-    let mut id = system::getpref_or_exit("default_user_pref", "minimal_uid").parse::<u32>().unwrap();
+    let defconfig_for_fresh_users:DefaultUserPref = match confy::load_path(CONFIG_LOCATION_DEFAULT_USER_PREF) {
+        Err(e) => {
+            eprintln!("Failed to open configuration. Probably, you don't have sufficient permissions: {}", e);
+            process::exit(1);
+        },
+        Ok(e) => {
+            e
+        }
+    };
+
+    let mut id = defconfig_for_fresh_users.minimal_uid;
     let mut name = "".to_string();
     let mut description = "".to_string();
     let mut password = "".to_string();
     let password_change_date = chrono::offset::Utc::now().timestamp();
     let mut password_expiration_date = 0_i64;
-    let mut can_change_password = system::getpref_or_exit("default_user_pref", "can_change_password").parse::<bool>().unwrap();
+    let mut can_change_password = defconfig_for_fresh_users.can_change_password;
     let creation_date = chrono::offset::Utc::now().timestamp();
-    let mut locked = system::getpref_or_exit("default_user_pref", "locked").parse::<bool>().unwrap();
-    let mut create_profile = system::getpref_or_exit("default_user_pref", "create_profile").parse::<bool>().unwrap();
+    let mut locked = defconfig_for_fresh_users.locked;
+    let mut create_profile = defconfig_for_fresh_users.create_profile;
     let mut delete_profile = false;
     let mut lock_date = 0_i64;
-    let mut profile_dir = system::getpref_or_exit("default_user_pref", "profile_dir");
-    let mut shell = system::getpref_or_exit("default_user_pref", "shell");
+    let mut profile_dir = defconfig_for_fresh_users.profile_dir;
+    let mut shell = defconfig_for_fresh_users.shell;
     
     let mut index = 0;
     while index < swcs.len() {
@@ -201,17 +272,19 @@ fn main() {
                     eprintln!("Failed to get user input!");
                     process::exit(1);
                 };
-                let min_allowed_pass_len = system::getpref_or_exit("default_user_pref", "password_minimum_len").parse::<u64>().unwrap();
-                let max_allowed_pass_len = system::getpref_or_exit("default_user_pref", "password_maximum_len").parse::<u64>().unwrap();
-                if (pass_probe1.clone().unwrap().len() as u64) < min_allowed_pass_len ||
-                (pass_probe2.clone().unwrap().len() as u64) < min_allowed_pass_len 
+
+                let min_allowed_pass_len = defconfig_for_fresh_users.password_minimum_len;
+                let max_allowed_pass_len = defconfig_for_fresh_users.password_maximum_len;
+                let p1_len = pass_probe1.clone().unwrap().join(" ").chars().count() as u64;
+                let p2_len = pass_probe2.clone().unwrap().join(" ").chars().count() as u64;
+
+                if min_allowed_pass_len != 0 && (p1_len < min_allowed_pass_len-1 || p2_len < min_allowed_pass_len-1)
                 {
-                    eprintln!("System admin requires your password to have at least {} characters!", min_allowed_pass_len);
+                    eprintln!("System admin requires your password to have at least {} characters! {p1_len},{p2_len}", min_allowed_pass_len);
                     process::exit(1);
                 }
 
-                if (pass_probe1.clone().unwrap().len() as u64) > max_allowed_pass_len ||
-                (pass_probe2.clone().unwrap().len() as u64) > max_allowed_pass_len 
+                if max_allowed_pass_len != 0 && (p1_len > max_allowed_pass_len-1 || p2_len > max_allowed_pass_len-1)
                 {
                     eprintln!("System admin requires your password to have up to {} characters!", max_allowed_pass_len);
                     process::exit(1);
@@ -289,7 +362,7 @@ fn main() {
     // Get the action and do what is needed
     match action.as_str() {
         "init" => {
-            confy::store_path(CONFIG, UsersList::default()).unwrap();
+            confy::store_path(CONFIG_LOCATION_USERS, UsersList::default()).unwrap();
         }
         "add" => {
             // If the requested content is a number - typically this means that user wants to
@@ -301,13 +374,13 @@ fn main() {
                 process::exit(1);
             }
             // Check if user name is already reserved
-            if isthere(&request, &cfg.users) {
+            if isthere(&request, &users_list.users) {
                 eprintln!("The user name \"{}\" is already reserved!", request);
                 process::exit(1);
             }
 
             // Check if user ID is already reserved
-            while isthere(&id.to_string(), &cfg.users) {
+            while isthere(&id.to_string(), &users_list.users) {
                 // Break if UID was implicitly set by the user
                 if swcs.contains(&"id".to_string()) {
                     eprintln!("The user ID \"{}\" is already reserved!", id);
@@ -320,7 +393,7 @@ fn main() {
             }
             
             // Copy current user config
-            let mut copy = cfg.users.clone();
+            let mut copy = users_list.users.clone();
             // Append a new user
             copy.push( User {
                         id,
@@ -329,14 +402,14 @@ fn main() {
                         description,
                         password, password_change_date, password_expiration_date, can_change_password,
                         creation_date,
-                        locked, lock_date, profile_dir: profile_dir.clone(), shell,
+                        locked, lock_date, profile_dir: format!("{}/{}", profile_dir.clone(), request.clone()), shell,
                     } );
             // Create a new config object
             let newconfig = UsersList {
                 users: copy,
             };
             // Add new contents
-            confy::store_path(CONFIG, newconfig).unwrap();
+            confy::store_path(CONFIG_LOCATION_USERS, newconfig).unwrap();
 
             // Create profile directory
             if create_profile {
@@ -346,7 +419,8 @@ fn main() {
                     eprintln!("Created a user without a home directory!");
                     process::exit(1);
                 };
-                let def_prof = system::getpref_or_exit("default_user_pref", "default_profile_dir");
+
+                let def_prof = defconfig_for_fresh_users.default_profile_dir;
 
                 if let Err(e) = copy_dir_all(def_prof, profile_dir.clone()) {
                     eprintln!("{}: Copying from default profile to a user profile failed: {}!", profile_dir, e.kind());
@@ -357,19 +431,20 @@ fn main() {
             
         },
         "del" => {
+            let request_is_number = request.parse::<i64>().is_ok();
             // This is pretty much self explanatory
             // I described similiar code in matching case above.
             // Check if user is already added
-            if !isthere(&request, &cfg.users) {
+            if !request_is_number && !isthere(&request, &users_list.users) {
                 eprintln!("User with name \"{}\" does not exist!", request);
                 process::exit(1);
             }
-            if !isthere(&id.to_string(), &cfg.users) {
+            if request_is_number && !isthere(&id.to_string(), &users_list.users) {
                 eprintln!("User with ID \"{}\" does not exist!", request);
                 process::exit(1);
             }
             // Copy current user config
-            let mut copy = cfg.users.clone();
+            let mut copy = users_list.users.clone();
             // Find and remove a user with the name or ID that is exact to the requested one 
             let mut i = 0;
             while i < copy.len() {
@@ -384,7 +459,7 @@ fn main() {
                 users: copy,
             };
             // Add new contents
-            confy::store_path(CONFIG, newconfig).unwrap();
+            confy::store_path(CONFIG_LOCATION_USERS, newconfig).unwrap();
 
             // Remove profile directory
             if delete_profile {
@@ -397,17 +472,20 @@ fn main() {
             }
         },
         "update" => {
+            let request_is_number = request.parse::<i64>().is_ok();
+            // This is pretty much self explanatory
+            // I described similiar code in matching case above.
             // Check if user is already added
-            if !isthere(&request, &cfg.users) {
+            if !request_is_number && !isthere(&request, &users_list.users) {
                 eprintln!("User with name \"{}\" does not exist!", request);
                 process::exit(1);
             }
-            if !isthere(&id.to_string(), &cfg.users) {
+            if request_is_number && !isthere(&id.to_string(), &users_list.users) {
                 eprintln!("User with ID \"{}\" does not exist!", request);
                 process::exit(1);
             }
             // Copy current user config
-            let mut copy = cfg.users.clone();
+            let mut copy = users_list.users.clone();
             let mut user_to_update = None;
             // Find and a user with the name or ID that is exact to the requested one 
             // Remove that match from users list
@@ -421,8 +499,7 @@ fn main() {
                 }
             }
             if user_to_update.is_none() {
-                eprintln!("This program contradicts itself! User was found in one part of the program and not in the other. This is a bug.");
-                process::exit(1);
+                panic!("This program contradicts itself! User was found in one part of the program and not in the other. This is a bug.");
             }
             // If user supplied some switch, use the value from switch
             // if not, use values that are already defined for him/her/whatever
@@ -499,21 +576,21 @@ fn main() {
                 users: copy,
             };
             // Add new contents
-            confy::store_path(CONFIG, newconfig).unwrap();
+            confy::store_path(CONFIG_LOCATION_USERS, newconfig).unwrap();
         },
         "list" => {
-            for user in cfg.users {
+            for user in users_list.users {
                 if user.name == request || user.id.to_string() == request {
                     println!("{:#?}", user);
                 }
             }
         },
         "isthere" => {
-            println!("{}", isthere(&request, &cfg.users));
+            println!("{}", isthere(&request, &users_list.users));
         }
         "whois" => {
             let request_is_number = request.parse::<i64>().is_ok();
-            for user in cfg.users {
+            for user in users_list.users {
                 if (!request_is_number && user.name == request) || (request_is_number && user.id.to_string() == request) {
                     println!("{}:{}", user.id, user.name);
                 }

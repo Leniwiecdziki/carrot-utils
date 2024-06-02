@@ -1,6 +1,41 @@
 use carrot_libs::{args,input,system};
 use std::os::raw::c_int;
 use std::process;
+use std::io;
+use std::io::Write;
+use std::collections::HashMap;
+use serde_derive::{Serialize, Deserialize};
+
+// This is where configuration structures for REX program are defined.
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct Rex {
+    allow_users: Vec<String>,
+    allow_groups: Vec<String>,
+    allow_users_nopass: Vec<String>,
+    allow_groups_nopass: Vec<String>,
+    deny_users: Vec<String>,
+    deny_groups: Vec<String>,
+    allow_cmd: HashMap<String,String>,
+    allow_cmd_nopass: HashMap<String,String>,
+    deny_cmd: HashMap<String,String>,
+}
+// Default settings for "Rex"
+impl std::default::Default for Rex {
+    fn default() -> Self {
+        Self {
+            allow_users: vec![],
+            allow_groups: vec![String::from("admin")],
+            allow_users_nopass: vec![String::from("root")],
+            allow_groups_nopass: vec![],
+            deny_users: vec![],
+            deny_groups: vec![],
+            allow_cmd: HashMap::new(),
+            allow_cmd_nopass: HashMap::new(),
+            deny_cmd: HashMap::new(),
+        }
+    }
+}
+pub const CONFIG_LOCATION_REX:&str = "/etc/rex.toml";
 
 fn main() {
     let opts = args::opts();
@@ -57,7 +92,7 @@ fn main() {
         }
     };
     // Sanity check - test if the running user/group is what we really want.
-    match system::current_user() {
+    match system::current_user_effective() {
         Ok(e) => {
             if e != desired_uid {
                 eprintln!("Failed to change effective UID! Probably, this is not an SUID binary or requested UID is incorrect!");
@@ -66,7 +101,7 @@ fn main() {
         },
         Err(e) => {eprintln!("Error: {}", e); process::exit(1);},
     }
-    match system::current_group() {
+    match system::current_group_effective() {
         Ok(e) => {
             if e != desired_gid {
                 eprintln!("Failed to change effective GID! Probably, this is not an SUID binary or requested GID is incorrect!");
@@ -76,6 +111,14 @@ fn main() {
         Err(e) => {eprintln!("Error: {}", e); process::exit(1);},
     }
 
+    let real_uid = match system::current_user_real() {
+        Ok(e) => e,
+        Err(e) => {
+            eprintln!("Failed to check real UID: {}!", e);
+            process::exit(1);
+        }
+    };
+
     match input::get("Password: ", true) {
         Err(e) => {
             eprintln!("Failed to get user input: {}!", e);
@@ -83,16 +126,22 @@ fn main() {
         }
         Ok(ret) => {
             let pass = ret.join(" ");
-            match system::password_check(desired_uid, pass) {
+            match system::password_check(real_uid, pass) {
                 Err(e) => {
-                    eprintln!("Failed to check passwords: {e}");
+                    eprintln!("Failed to check password: {e}");
                     process::exit(1);
                 }
                 Ok(result) => {
                     if result {
-                        println!("Passwords match!");
+                        io::stdout().flush().unwrap();
+                        if opts.len() == 1 {
+                            process::Command::new(&opts[0]).spawn().unwrap().wait_with_output().unwrap();
+                        } else {
+                            process::Command::new(&opts[0]).args(&opts[1..]).spawn().unwrap().wait_with_output().unwrap();
+                        }
+                        // Flush stdout
                     } else {
-                        println!("Passwords mismatch!");
+                        println!("What a miss!");
                         process::exit(1);
                     }
                 }

@@ -158,22 +158,28 @@
 ### Added on 01.06.2024
 
 - USERUTIL: Make sure that password meets min/max length defined in settings, create user profile while adding a user, ability to copy from default_profile_dir(), delete user profile while removing a user
+- USERUTIL: Ability to show real/effective user ID
+- REX: Ability to run commands
 
 ### Waiting features:
 
 - DISKUTIL: Disk management (NEW PROGRAM!)
 - GROUPUTIL: Manage groups on system (NEW PROGRAM!)
 - DIV: Find divergent lines in files (NEW PROGRAM!)
+- SPLIT: Redirect output to console and a file (NEW PROGRAM!)
+- SEEK: Wait for changes in file and show them, if any (NEW PROGRAM!)
 - *: Migrate from 'crossterm' to carrot_libs::cli
 
 # Release unknown:
 
 # Waiting features
 
-- HELP: View documentation
-- SCRIBUS: Generate documents from templates
-- TTY: Terminal management
+- HELP: View documentation (NEW PROGRAM!)
+- SCRIBUS: Generate documents from templates (NEW PROGRAM!)
+- FIND: Search for objects in filesystem (Reimplementation of older 'seek')
+- TTY: Terminal management (NEW PROGRAM!)
+- T: View system tasks (NEW PROGRAM!)
+- S: Send signals to processes (NEW PROGRAM!)
 - Translations
 - Standarised exit codes
 - Try to make all error messages as similiar as possible
-- FIND: Search for objects in filesystem
