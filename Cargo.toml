@@ -53,6 +53,10 @@ name = "count"
 path = "src/count.rs"
 
 [[bin]]
+name = "div"
+path = "src/div.rs"
+
+[[bin]]
 name = "hello"
 path = "src/hello.rs"
 
