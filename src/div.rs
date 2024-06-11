@@ -2,9 +2,9 @@ use std::fs;
 use std::io;
 use std::process;
 use carrot_libs::args;
+use std::collections::BTreeMap;
 
 fn main() {
-
     let opts = args::opts();
     let (swcs, vals) = args::swcs();
     for v in vals {
@@ -38,31 +38,21 @@ fn main() {
     }
 
     // Save file lines to vectors
-    let mut lines1 = Vec::new();
-    let mut lines2 = Vec::new();
+    let mut lines = BTreeMap::new();
+
     // Read files and check for possible errors
-    match fs::read_to_string(opts[0].clone()) {
-        Err(e) => {
-            eprintln!("{}: Failed to read a file: {:?}!", opts[0], e.kind());
-            process::exit(1);
-        },
-        Ok(result) => {
-            todo!("No clue");
-            for l in result.lines() {
-                lines1.push(l);
+    let file1 = fs::read_to_string(opts[0].clone());
+    let file2 = fs::read_to_string(opts[1].clone());
+
+    match (file1, file2) {
+        (Ok(ref res1), Ok(ref res2)) => {
+            for l in res1.lines() {
+                lines.insert(l, String::from(""));
             }
         },
-    };
-    match fs::read_to_string(opts[1].clone()) {
-        Err(e) => {
+        _ => {
             eprintln!("{}: Failed to read a file: {:?}!", opts[0], e.kind());
             process::exit(1);
-        },
-        Ok(result) => {
-            todo!("No clue");
-            for l in result.lines() {
-                lines2.push(l);
-            }
         },
     };
 
@@ -78,67 +68,21 @@ fn main() {
     // !    Line does not exist
 
     // Compare lines
-    loop {
-        match compare(lines1.clone(), lines2.clone(), left_idx, right_idx) {
-            "both_end" => process::exit(0),
-            "right_end" => {
-                println!("{} !+: {}", left_idx, lines1[left_idx]);
-                left_idx += 1;
-            }
-            "left_end" => {
-                println!("{} +!: {}", right_idx, lines2[right_idx]);
-                right_idx += 1;
-            }
-            "equal" => {
-                println!("{} ==: {}", left_idx, lines1[left_idx]);
-                left_idx += 1;
-                right_idx += 1;
-            }
-            "differ" => {
-                // If lines differ, check if this is because user appended/removed some line, or if this is
-                // because lines changes completely
-                match compare(lines1.clone(), lines2.clone(), left_idx, right_idx) {
-                    "both_end" => process::exit(0),
-                    "right_end" => {
-                        println!("{} !+: {}", left_idx, lines1[left_idx]);
-                        left_idx += 1;
-                    }
-                    "left_end" => {
-                        println!("{} +!: {}", right_idx, lines2[right_idx]);
-                        right_idx += 1;
-                    }
-                    "equal" => {
-                        println!("{} ==: {}", left_idx, lines1[left_idx]);
-                        left_idx += 1;
-                        right_idx += 1;
-                    }
-                    _ => todo!(),
-                }
-            }
-            _ => todo!(),
-        }     
+    for l in lines1 {
+
     }
 }
 
 
-fn compare(lines1:Vec<&str>, lines2:Vec<&str>, left_idx:usize, right_idx:usize) -> &'static str {
-    // If BOTH files ended, quit.
-    if lines1.get(left_idx).is_none() && lines2.get(left_idx).is_none() {
-        "both_end"
+fn is_on_other_side(lines:Vec<&str>, idx:usize) -> bool {
+    for (i,l) in lines[idx..].iter().enumerate() {
+        let haha = idx+i;
+        if *l == lines[haha] && haha != lines.len() {
+            return true;
+        } else {
+            return false;
+        }
     }
-    // If there are no more lines on the right side
-    else if lines1.get(left_idx).is_some() && lines2.get(left_idx).is_none() {
-        "right_end"
-    }
-    // If there are no more lines on the left side
-    else if lines1.get(left_idx).is_none() && lines2.get(left_idx).is_some() {
-        "left_end"
-    }
-    // If lines are the same, just skip them and check other lines
-    else if lines1.get(left_idx) == lines2.get(right_idx) {
-        "equal"
-    }
-    else {
-        "differ"
-    }
+    // Bro, return something, just in case (skull emoji)
+    false
 }
