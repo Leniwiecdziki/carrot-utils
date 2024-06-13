@@ -49,7 +49,7 @@ fn main() {
         }
         if s == "a" || s == "ask" {
             if !v.is_empty() { eprintln!("{s}: This switch doesn't accept a value!"); process::exit(1); };
-            toclear = match input::ask(&opts[index]) {
+            toclear = match (input::ask(format!("{}: Do you really want to remove this file?", &opts[index]))) {
                 Err(e) => {
                     eprintln!("Can't get user input: {}!", e);
                     process::exit(1);

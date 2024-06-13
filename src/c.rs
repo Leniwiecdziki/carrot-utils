@@ -52,11 +52,6 @@ fn main() {
         index += 1;
     };
 
-    if ask && overwrite {
-        eprintln!("Switch \"overwrite\" collides with \"ask\"!");
-        process::exit(1);
-    }
-
     // Check if destination element exists and it's type
     let command_to_match = if link {
         PathBuf::from(&opts.last().unwrap()).symlink_metadata()
@@ -301,7 +296,7 @@ fn browsedir(src:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&b
 
 fn copy(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&bool) {
     let overwrite = if *ask {
-        match input::ask(dest.to_string_lossy()) {
+        match input::ask(format!("{}: Do you really want to remove this file?", dest.to_string_lossy())) {
             Err(e) => {
                 eprintln!("Can't get user input: {}!", e);
                 process::exit(1);

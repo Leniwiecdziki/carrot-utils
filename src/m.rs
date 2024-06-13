@@ -301,7 +301,7 @@ fn browsedir(src:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&b
 
 fn rename(source:&PathBuf, dest:&PathBuf, verbose:&bool, overwrite:&bool, ask:&bool) {
     let overwrite = if *ask {
-        match input::ask(dest.to_string_lossy()) {
+        match input::ask(format!("{}: Do you really want to remove this file?", dest.display())) {
             Err(e) => {
                 eprintln!("Can't get user input: {}!", e);
                 process::exit(1);

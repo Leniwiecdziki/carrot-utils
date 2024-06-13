@@ -168,13 +168,19 @@
 - REX: Fixed an issue that caused REX not to pass arguments starting with "-" to executed programs
 - REX: Do not ask for password when using REX to change EUID to the current EUID
 
+# Release 0.3.4:
+
+### Added on 13.06.2024
+
+- SPLIT: Redirect output to console and a files (NEW PROGRAM!)
+
 ### Waiting features:
 
 - DISKUTIL: Disk management (NEW PROGRAM!)
 - GROUPUTIL: Manage groups on system (NEW PROGRAM!)
 - DIV: Find divergent lines in files (NEW PROGRAM!)
-- SPLIT: Redirect output to console and a file (NEW PROGRAM!)
 - SEEK: Wait for changes in file and show them, if any (NEW PROGRAM!)
+- SPLIT: Known bug - Program EXPLODES if piped stuff continues to print something while the program is asking user for input if "-ask" is used.
 - *: Migrate from 'crossterm' to carrot_libs::cli
 
 # Release unknown:

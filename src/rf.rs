@@ -31,7 +31,7 @@ fn main() {
                 process::exit(1);
             }
             if s == "a" || s == "ask" {
-                toclear = match input::ask(&opts[index]) {
+                toclear = match input::ask(format!("{}: Do you really want to remove this file?", &opts[index])) {
                     Err(e) => {
                         eprintln!("Can't get user input: {}!", e);
                         process::exit(1);

@@ -68,6 +68,8 @@ fn main() {
     // !    Line does not exist
     
     // Compare lines
+    todo!();
+    /*
     for (i, l) in lines1.enumerate() {
         if let Ok(res) = lines2.get(i) {
             if res == lines1[idx] {
@@ -81,6 +83,7 @@ fn main() {
             }
         }
     }
+    */
 }
 
 
