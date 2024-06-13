@@ -116,13 +116,13 @@ path = "src/rf.rs"
 name = "shrink"
 path = "src/shrink.rs"
 
-[[subbin]]
-name = "shrink"
-path = "src/shrink.rs"
-
 [[bin]]
 name = "sl"
 path = "src/sl.rs"
+
+[[bin]]
+name = "split"
+path = "src/split.rs"
 
 [[bin]]
 name = "tr"
