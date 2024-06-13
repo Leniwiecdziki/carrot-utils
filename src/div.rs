@@ -2,7 +2,7 @@ use std::fs;
 use std::io;
 use std::process;
 use carrot_libs::args;
-use std::collections::BTreeMap;
+use std::vec;
 
 fn main() {
     let opts = args::opts();
@@ -38,7 +38,8 @@ fn main() {
     }
 
     // Save file lines to vectors
-    let mut lines = BTreeMap::new();
+    let mut lines1 = Vec::new();
+    let mut lines2 = Vec::new();
 
     // Read files and check for possible errors
     let file1 = fs::read_to_string(opts[0].clone());
@@ -47,18 +48,17 @@ fn main() {
     match (file1, file2) {
         (Ok(ref res1), Ok(ref res2)) => {
             for l in res1.lines() {
-                lines.insert(l, String::from(""));
+                lines1.push(l);
+            }
+            for l in res2.lines() {
+                lines2.push(l);
             }
         },
         _ => {
-            eprintln!("{}: Failed to read a file: {:?}!", opts[0], e.kind());
+            eprintln!("{}: Failed to read a file!", opts[0]);
             process::exit(1);
         },
     };
-
-    // Compare lines
-    let mut left_idx = 0;
-    let mut right_idx = 0;
 
     // This is a table of all symbols:
     // =    Lines match
@@ -66,17 +66,28 @@ fn main() {
     // +    Line is appended
     // -    Line is removed
     // !    Line does not exist
-
+    
     // Compare lines
-    for l in lines1 {
-
+    for (i, l) in lines1.enumerate() {
+        if let Ok(res) = lines2.get(i) {
+            if res == lines1[idx] {
+                if show_exact_lines {
+                    println!("{l}");
+                }
+            }
+            else {
+                if is_on_other_side(&lines2, i) {
+                }
+            }
+        }
     }
 }
 
 
-fn is_on_other_side(lines:Vec<&str>, idx:usize) -> bool {
+fn is_on_other_side(lines:&Vec<&str>, idx:usize) -> bool {
     for (i,l) in lines[idx..].iter().enumerate() {
         let haha = idx+i;
+        
         if *l == lines[haha] && haha != lines.len() {
             return true;
         } else {
