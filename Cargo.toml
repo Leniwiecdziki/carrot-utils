@@ -113,6 +113,10 @@ name = "rf"
 path = "src/rf.rs"
 
 [[bin]]
+name = "seek"
+path = "src/seek.rs"
+
+[[bin]]
 name = "shrink"
 path = "src/shrink.rs"
 
@@ -125,10 +129,6 @@ name = "split"
 path = "src/split.rs"
 
 [[bin]]
-name = "tr"
-path = "src/tr.rs"
-
-[[sublib]]
 name = "tr"
 path = "src/tr.rs"
 
