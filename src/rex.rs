@@ -95,19 +95,19 @@ fn main() {
         if s == "u" || s == "user" {
             desired_uid = match v.parse::<u32>() {
                 Ok(e) => e,
-                Err(e) => {eprintln!("Cannot parse value for a switch: {s}={v}: {:?}", e.kind()); process::exit(1);},
+                Err(e) => {eprintln!("Failed to convert switch value to a number: {s}={v}: {:?}", e.kind()); process::exit(1);},
             }
         }
         if s == "g" || s == "group" {
             desired_gid = match v.parse::<u32>() {
                 Ok(e) => e,
-                Err(e) => {eprintln!("Cannot parse value for a switch: {s}={v}: {:?}", e.kind()); process::exit(1);},
+                Err(e) => {eprintln!("Failed to convert switch value to a number: {s}={v}: {:?}", e.kind()); process::exit(1);},
             }
         }
         if s == "b" || s == "both" {
             (desired_uid, desired_gid) = match v.parse::<u32>() {
                 Ok(e) => (e,e),
-                Err(e) => {eprintln!("Cannot parse value for a switch: {s}={v}: {:?}", e.kind()); process::exit(1);},
+                Err(e) => {eprintln!("Failed to convert switch value to a number: {s}={v}: {:?}", e.kind()); process::exit(1);},
             }
         }
         index += 1;

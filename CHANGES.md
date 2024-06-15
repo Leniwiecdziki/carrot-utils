@@ -172,14 +172,19 @@
 
 ### Added on 13.06.2024
 
-- SPLIT: Redirect output to console and a files (NEW PROGRAM!)
+- SPLIT: Redirect output to console and files (NEW PROGRAM!)
+
+# Release 0.3.5:
+
+### Added on 15.06.2024
+
+- SEEK: Show newest changes in object and show them (NEW PROGRAM!)
 
 ### Waiting features:
 
 - DISKUTIL: Disk management (NEW PROGRAM!)
 - GROUPUTIL: Manage groups on system (NEW PROGRAM!)
 - DIV: Find divergent lines in files (NEW PROGRAM!)
-- SEEK: Wait for changes in file and show them, if any (NEW PROGRAM!)
 - SPLIT: Known bug - Program EXPLODES if piped stuff continues to print something while the program is asking user for input if "-ask" is used.
 - *: Migrate from 'crossterm' to carrot_libs::cli
 
