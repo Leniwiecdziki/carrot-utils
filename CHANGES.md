@@ -195,7 +195,6 @@
 - HELP: View documentation (NEW PROGRAM!)
 - SCRIBUS: Generate documents from templates (NEW PROGRAM!)
 - FIND: Search for objects in filesystem (Reimplementation of older 'seek')
-- TTY: Terminal management (NEW PROGRAM!)
 - T: View system tasks (NEW PROGRAM!)
 - S: Send signals to processes (NEW PROGRAM!)
 - Translations
